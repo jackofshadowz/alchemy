@@ -10,49 +10,26 @@ from config import *
 DEFAULT_SONG_ARCHIVE_URLS = []
 
 
-def close_running_selenium_instances() -> None:
-    """
-    Closes any running Selenium instances.
-
-    Returns:
-        None
-    """
+def close_running_browser_instances() -> None:
     try:
-        info(" => Closing running Selenium instances...")
+        info(" => Closing running browser instances...")
 
-        # Kill all running Firefox instances
         if platform.system() == "Windows":
             os.system("taskkill /f /im firefox.exe")
         else:
             os.system("pkill firefox")
 
-        success(" => Closed running Selenium instances.")
+        success(" => Closed running browser instances.")
 
     except Exception as e:
-        error(f"Error occurred while closing running Selenium instances: {str(e)}")
+        error(f"Error occurred while closing running browser instances: {str(e)}")
 
 
 def build_url(youtube_video_id: str) -> str:
-    """
-    Builds the URL to the YouTube video.
-
-    Args:
-        youtube_video_id (str): The YouTube video ID.
-
-    Returns:
-        url (str): The URL to the YouTube video.
-    """
     return f"https://www.youtube.com/watch?v={youtube_video_id}"
 
 
 def rem_temp_files() -> None:
-    """
-    Removes temporary files in the `.mp` directory.
-
-    Returns:
-        None
-    """
-    # Path to the `.mp` directory
     mp_dir = os.path.join(ROOT_DIR, ".mp")
 
     files = os.listdir(mp_dir)
@@ -63,12 +40,6 @@ def rem_temp_files() -> None:
 
 
 def fetch_songs() -> None:
-    """
-    Downloads songs into songs/ directory to use with geneated videos.
-
-    Returns:
-        None
-    """
     try:
         info(f" => Fetching songs...")
 
@@ -124,7 +95,6 @@ def fetch_songs() -> None:
                 "Could not download a valid songs archive from any configured URL"
             )
 
-        # Remove the zip file
         if os.path.exists(archive_path):
             os.remove(archive_path)
 
@@ -135,12 +105,6 @@ def fetch_songs() -> None:
 
 
 def choose_random_song() -> str:
-    """
-    Chooses a random song from the songs/ directory.
-
-    Returns:
-        str: The path to the chosen song.
-    """
     try:
         songs_dir = os.path.join(ROOT_DIR, "Songs")
         songs = [

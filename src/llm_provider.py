@@ -1,63 +1,46 @@
-import ollama
+from openai import OpenAI
+from config import get_llm_config
 
-from config import get_ollama_base_url
+_client: OpenAI | None = None
+_model: str | None = None
+_provider: str | None = None
 
-_selected_model: str | None = None
-
-
-def _client() -> ollama.Client:
-    return ollama.Client(host=get_ollama_base_url())
-
-
-def list_models() -> list[str]:
-    """
-    Lists all models available on the local Ollama server.
-
-    Returns:
-        models (list[str]): Sorted list of model names.
-    """
-    response = _client().list()
-    return sorted(m.model for m in response.models)
+PROVIDERS = {
+    "inference_net",
+    "groq",
+    "openrouter",
+    "deepseek",
+    "moonshot",
+}
 
 
-def select_model(model: str) -> None:
-    """
-    Sets the model to use for all subsequent generate_text calls.
-
-    Args:
-        model (str): An Ollama model name (must be already pulled).
-    """
-    global _selected_model
-    _selected_model = model
+def init_provider(provider: str = None, api_key: str = None,
+                  base_url: str = None, model: str = None) -> None:
+    global _client, _model, _provider
+    cfg = get_llm_config()
+    _provider = provider or cfg["provider"]
+    _model = model or cfg["model"]
+    _client = OpenAI(
+        api_key=api_key or cfg["api_key"],
+        base_url=base_url or cfg["base_url"],
+    )
 
 
 def get_active_model() -> str | None:
-    """
-    Returns the currently selected model, or None if none has been selected.
-    """
-    return _selected_model
+    return _model
+
+
+def get_active_provider() -> str | None:
+    return _provider
 
 
 def generate_text(prompt: str, model_name: str = None) -> str:
-    """
-    Generates text using the local Ollama server.
+    if _client is None:
+        init_provider()
 
-    Args:
-        prompt (str): User prompt
-        model_name (str): Optional model name override
-
-    Returns:
-        response (str): Generated text
-    """
-    model = model_name or _selected_model
-    if not model:
-        raise RuntimeError(
-            "No Ollama model selected. Call select_model() first or pass model_name."
-        )
-
-    response = _client().chat(
-        model=model,
+    response = _client.chat.completions.create(
+        model=model_name or _model,
         messages=[{"role": "user", "content": prompt}],
     )
 
-    return response["message"]["content"].strip()
+    return response.choices[0].message.content.strip()

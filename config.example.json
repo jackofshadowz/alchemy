@@ -1,35 +1,73 @@
 {
   "verbose": true,
-  "firefox_profile": "",
   "headless": false,
-  "ollama_base_url": "http://127.0.0.1:11434",
-  "ollama_model": "",
-  "twitter_language": "English",
-  "nanobanana2_api_base_url": "https://generativelanguage.googleapis.com/v1beta",
-  "nanobanana2_api_key": "",
-  "nanobanana2_model": "gemini-3.1-flash-image-preview",
-  "nanobanana2_aspect_ratio": "9:16",
   "threads": 2,
-  "zip_url": "",
-  "is_for_kids": false,
-  "google_maps_scraper": "https://github.com/gosom/google-maps-scraper/archive/refs/tags/v0.9.7.zip",
+
+  "llm": {
+    "provider": "groq",
+    "providers": {
+      "inference_net": {
+        "api_key": "",
+        "base_url": "https://api.inference.net/v1",
+        "model": "meta-llama/llama-3.1-8b-instruct/fp-8"
+      },
+      "groq": {
+        "api_key": "",
+        "base_url": "https://api.groq.com/openai/v1",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "openrouter": {
+        "api_key": "",
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "meta-llama/llama-3.1-8b-instruct"
+      },
+      "deepseek": {
+        "api_key": "",
+        "base_url": "https://api.deepseek.com",
+        "model": "deepseek-chat"
+      },
+      "moonshot": {
+        "api_key": "",
+        "base_url": "https://api.moonshot.cn/v1",
+        "model": "moonshot-v1-8k"
+      }
+    }
+  },
+
+  "tts": {
+    "voice": "af_heart",
+    "speed": 1.0
+  },
+
+  "image_generation": {
+    "api_base_url": "https://generativelanguage.googleapis.com/v1beta",
+    "api_key": "",
+    "model": "gemini-2.0-flash-preview-image-generation",
+    "aspect_ratio": "9:16"
+  },
+
+  "youtube": {
+    "is_for_kids": false,
+    "zip_url": "",
+    "font": "bold_font.ttf",
+    "imagemagick_path": "/opt/homebrew/bin/magick",
+    "script_sentence_length": 4
+  },
+
+  "twitter_language": "English",
+
+  "outreach": {
+    "google_maps_scraper": "https://github.com/gosom/google-maps-scraper/archive/refs/tags/v0.9.7.zip",
+    "google_maps_scraper_niche": "",
+    "scraper_timeout": 300,
+    "message_subject": "I have a question...",
+    "message_body_file": "outreach_message.html"
+  },
+
   "email": {
     "smtp_server": "smtp.gmail.com",
     "smtp_port": 587,
     "username": "",
     "password": ""
-  },
-  "google_maps_scraper_niche": "",
-  "scraper_timeout": 300,
-  "outreach_message_subject": "I have a question...",
-  "outreach_message_body_file": "outreach_message.html",
-  "stt_provider": "local_whisper",
-  "whisper_model": "base",
-  "whisper_device": "auto",
-  "whisper_compute_type": "int8",
-  "assembly_ai_api_key": "",
-  "tts_voice": "Jasper",
-  "font": "bold_font.ttf",
-  "imagemagick_path": "Path to magick.exe or on linux/macOS just /usr/bin/convert",
-  "script_sentence_length": 4
+  }
 }

@@ -15,37 +15,14 @@ from classes.YouTube import YouTube
 from prettytable import PrettyTable
 from classes.Outreach import Outreach
 from classes.AFM import AffiliateMarketing
-from llm_provider import list_models, select_model, get_active_model
+from llm_provider import init_provider, get_active_model, get_active_provider
 
 def main():
-    """Main entry point for the application, providing a menu-driven interface
-    to manage YouTube, Twitter bots, Affiliate Marketing, and Outreach tasks.
+    """Main entry point — menu-driven interface for YouTube, Twitter, AFM, and Outreach."""
 
-    This function allows users to:
-    1. Start the YouTube Shorts Automater to manage YouTube accounts, 
-       generate and upload videos, and set up CRON jobs.
-    2. Start a Twitter Bot to manage Twitter accounts, post tweets, and 
-       schedule posts using CRON jobs.
-    3. Manage Affiliate Marketing by creating pitches and sharing them via 
-       Twitter accounts.
-    4. Initiate an Outreach process for engagement and promotion tasks.
-    5. Exit the application.
-
-    The function continuously prompts users for input, validates it, and 
-    executes the selected option until the user chooses to quit.
-
-    Args:
-        None
-
-    Returns:
-        None"""
-
-    # Get user input
-    # user_input = int(question("Select an option: "))
     valid_input = False
     while not valid_input:
         try:
-    # Show user options
             info("\n============ OPTIONS ============", False)
 
             for idx, option in enumerate(OPTIONS):
@@ -63,7 +40,6 @@ def main():
             print(f"Invalid input: {e}")
 
 
-    # Start the selected option
     if user_input == 1:
         info("Starting YT Shorts Automater...")
 
@@ -78,14 +54,14 @@ def main():
 
                 success(f" => Generated ID: {generated_uuid}")
                 nickname = question(" => Enter a nickname for this account: ")
-                fp_profile = question(" => Enter the path to the Firefox profile: ")
+                browser_profile = question(" => Enter the path to the browser profile directory: ")
                 niche = question(" => Enter the account niche: ")
                 language = question(" => Enter the account language: ")
 
                 account_data = {
                     "id": generated_uuid,
                     "nickname": nickname,
-                    "firefox_profile": fp_profile,
+                    "browser_profile": browser_profile,
                     "niche": niche,
                     "language": language,
                     "videos": [],
@@ -141,7 +117,7 @@ def main():
                 youtube = YouTube(
                     selected_account["id"],
                     selected_account["nickname"],
-                    selected_account["firefox_profile"],
+                    selected_account.get("browser_profile", selected_account.get("firefox_profile", "")),
                     selected_account["niche"],
                     selected_account["language"]
                 )
@@ -155,7 +131,6 @@ def main():
 
                     info("=================================\n", False)
 
-                    # Get user input
                     user_input = int(question("Select an option: "))
                     tts = TTS()
 
@@ -193,17 +168,15 @@ def main():
                         user_input = int(question("Select an Option: "))
 
                         cron_script_path = os.path.join(ROOT_DIR, "src", "cron.py")
-                        command = ["python", cron_script_path, "youtube", selected_account['id'], get_active_model()]
+                        command = ["python", cron_script_path, "youtube", selected_account['id']]
 
                         def job():
                             subprocess.run(command)
 
                         if user_input == 1:
-                            # Upload Once
                             schedule.every(1).day.do(job)
                             success("Set up CRON Job.")
                         elif user_input == 2:
-                            # Upload Twice a day
                             schedule.every().day.at("10:00").do(job)
                             schedule.every().day.at("16:00").do(job)
                             success("Set up CRON Job.")
@@ -227,13 +200,13 @@ def main():
 
                 success(f" => Generated ID: {generated_uuid}")
                 nickname = question(" => Enter a nickname for this account: ")
-                fp_profile = question(" => Enter the path to the Firefox profile: ")
+                browser_profile = question(" => Enter the path to the browser profile directory: ")
                 topic = question(" => Enter the account topic: ")
 
                 add_account("twitter", {
                     "id": generated_uuid,
                     "nickname": nickname,
-                    "firefox_profile": fp_profile,
+                    "browser_profile": browser_profile,
                     "topic": topic,
                     "posts": []
                 })
@@ -281,10 +254,15 @@ def main():
                 error("Invalid account selected. Please try again.", "red")
                 main()
             else:
-                twitter = Twitter(selected_account["id"], selected_account["nickname"], selected_account["firefox_profile"], selected_account["topic"])
+                twitter = Twitter(
+                    selected_account["id"],
+                    selected_account["nickname"],
+                    selected_account.get("browser_profile", selected_account.get("firefox_profile", "")),
+                    selected_account["topic"]
+                )
 
                 while True:
-                    
+
                     info("\n============ OPTIONS ============", False)
 
                     for idx, twitter_option in enumerate(TWITTER_OPTIONS):
@@ -292,7 +270,6 @@ def main():
 
                     info("=================================\n", False)
 
-                    # Get user input
                     user_input = int(question("Select an option: "))
 
                     if user_input == 1:
@@ -324,22 +301,19 @@ def main():
                         user_input = int(question("Select an Option: "))
 
                         cron_script_path = os.path.join(ROOT_DIR, "src", "cron.py")
-                        command = ["python", cron_script_path, "twitter", selected_account['id'], get_active_model()]
+                        command = ["python", cron_script_path, "twitter", selected_account['id']]
 
                         def job():
                             subprocess.run(command)
 
                         if user_input == 1:
-                            # Post Once a day
                             schedule.every(1).day.do(job)
                             success("Set up CRON Job.")
                         elif user_input == 2:
-                            # Post twice a day
                             schedule.every().day.at("10:00").do(job)
                             schedule.every().day.at("16:00").do(job)
                             success("Set up CRON Job.")
                         elif user_input == 3:
-                            # Post thrice a day
                             schedule.every().day.at("08:00").do(job)
                             schedule.every().day.at("12:00").do(job)
                             schedule.every().day.at("18:00").do(job)
@@ -363,7 +337,6 @@ def main():
                 affiliate_link = question(" => Enter the affiliate link: ")
                 twitter_uuid = question(" => Enter the Twitter Account UUID: ")
 
-                # Find the account
                 account = None
                 for acc in get_accounts("twitter"):
                     if acc["id"] == twitter_uuid:
@@ -375,7 +348,13 @@ def main():
                     "twitter_uuid": twitter_uuid
                 })
 
-                afm = AffiliateMarketing(affiliate_link, account["firefox_profile"], account["id"], account["nickname"], account["topic"])
+                afm = AffiliateMarketing(
+                    affiliate_link,
+                    account.get("browser_profile", account.get("firefox_profile", "")),
+                    account["id"],
+                    account["nickname"],
+                    account["topic"]
+                )
 
                 afm.generate_pitch()
                 afm.share_pitch("twitter")
@@ -400,13 +379,18 @@ def main():
                 error("Invalid product selected. Please try again.", "red")
                 main()
             else:
-                # Find the account
                 account = None
                 for acc in get_accounts("twitter"):
                     if acc["id"] == selected_product["twitter_uuid"]:
                         account = acc
 
-                afm = AffiliateMarketing(selected_product["affiliate_link"], account["firefox_profile"], account["id"], account["nickname"], account["topic"])
+                afm = AffiliateMarketing(
+                    selected_product["affiliate_link"],
+                    account.get("browser_profile", account.get("firefox_profile", "")),
+                    account["id"],
+                    account["nickname"],
+                    account["topic"]
+                )
 
                 afm.generate_pitch()
                 afm.share_pitch("twitter")
@@ -424,7 +408,7 @@ def main():
     else:
         error("Invalid option selected. Please try again.", "red")
         main()
-    
+
 
 if __name__ == "__main__":
     # Print ASCII Banner
@@ -433,7 +417,7 @@ if __name__ == "__main__":
     first_time = get_first_time_running()
 
     if first_time:
-        print(colored("Hey! It looks like you're running MoneyPrinter V2 for the first time. Let's get you setup first!", "yellow"))
+        print(colored("Hey! It looks like you're running Alchemy for the first time. Let's get you setup first!", "yellow"))
 
     # Setup file tree
     assert_folder_structure()
@@ -444,41 +428,14 @@ if __name__ == "__main__":
     # Fetch MP3 Files
     fetch_songs()
 
-    # Select Ollama model — use config value if set, otherwise pick interactively
-    configured_model = get_ollama_model()
-    if configured_model:
-        select_model(configured_model)
-        success(f"Using configured model: {configured_model}")
-    else:
-        try:
-            models = list_models()
-        except Exception as e:
-            error(f"Could not connect to Ollama: {e}")
-            sys.exit(1)
-
-        if not models:
-            error("No models found on Ollama. Pull a model first (e.g. 'ollama pull llama3.2:3b').")
-            sys.exit(1)
-
-        info("\n========== OLLAMA MODELS =========", False)
-        for idx, model_name in enumerate(models):
-            print(colored(f" {idx + 1}. {model_name}", "cyan"))
-        info("==================================\n", False)
-
-        model_choice = None
-        while model_choice is None:
-            raw = input(colored("Select a model: ", "magenta")).strip()
-            try:
-                choice_idx = int(raw) - 1
-                if 0 <= choice_idx < len(models):
-                    model_choice = models[choice_idx]
-                else:
-                    warning("Invalid selection. Try again.")
-            except ValueError:
-                warning("Please enter a number.")
-
-        select_model(model_choice)
-        success(f"Using model: {model_choice}")
+    # Initialize LLM provider from config
+    try:
+        init_provider()
+        success(f"Using {get_active_provider()} with model {get_active_model()}")
+    except Exception as e:
+        error(f"Failed to initialize LLM provider: {e}")
+        info("Check your config.json — make sure llm.provider and the corresponding API key are set.")
+        sys.exit(1)
 
     while True:
         main()

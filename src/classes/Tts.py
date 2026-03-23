@@ -1,18 +1,23 @@
 import os
-import soundfile as sf
-from kittentts import KittenTTS as KittenModel
+import modal
 
-from config import ROOT_DIR, get_tts_voice
+from config import ROOT_DIR, get_tts_config
 
-KITTEN_MODEL = "KittenML/kitten-tts-mini-0.8"
-KITTEN_SAMPLE_RATE = 24000
 
 class TTS:
     def __init__(self) -> None:
-        self._model = KittenModel(KITTEN_MODEL)
-        self._voice = get_tts_voice()
+        cfg = get_tts_config()
+        self._voice = cfg["voice"]
+        self._speed = cfg["speed"]
+        cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
+        self._model = cls()
 
-    def synthesize(self, text, output_file=os.path.join(ROOT_DIR, ".mp", "audio.wav")):
-        audio = self._model.generate(text, voice=self._voice)
-        sf.write(output_file, audio, KITTEN_SAMPLE_RATE)
+    def synthesize(self, text, output_file=None):
+        if output_file is None:
+            output_file = os.path.join(ROOT_DIR, ".mp", "audio.wav")
+        wav_bytes = self._model.synthesize.remote(
+            text, voice=self._voice, speed=self._speed
+        )
+        with open(output_file, "wb") as f:
+            f.write(wav_bytes)
         return output_file
