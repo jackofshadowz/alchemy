@@ -12,7 +12,11 @@ app = modal.App("alchemy-tts")
 kokoro_image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("espeak-ng")
-    .pip_install("kokoro", "soundfile", "numpy", "torch")
+    .pip_install(
+        "torch",
+        index_url="https://download.pytorch.org/whl/cu121",
+    )
+    .pip_install("kokoro", "soundfile", "numpy")
 )
 
 

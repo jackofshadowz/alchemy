@@ -7,4 +7,8 @@ google-maps-scraper-0.9.7/
 niche.txt
 *.exe
 auto.sh
-.DS_Store
+.DS_Storevideos/
+*.wav
+test_audio.mp3
+epic_bg.wav
+music/

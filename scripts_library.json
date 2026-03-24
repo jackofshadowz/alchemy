@@ -1,0 +1,86 @@
+[
+  {
+    "id": "breathe_success",
+    "script": "When you want to succeed as bad as you want to breathe, that's when everything changes. I don't care if you're tired. I don't care if it hurts. You think champions were built on comfort? Look around you. The penthouse. The car. The view over Monaco. None of this came from hitting snooze. It came from the mornings nobody saw. The reps nobody counted. The hours nobody believed in. You want this life? Then stop wishing. And start becoming.",
+    "mood": "intense_buildup",
+    "scenes": ["man_gasping_after_workout", "empty_gym_predawn", "monaco_penthouse_view", "supercar_closeup", "man_training_alone"]
+  },
+  {
+    "id": "through_hell",
+    "script": "If you're going through hell, keep going. Don't stop. Don't sit down. Don't look back. You're not supposed to live there. The cold mornings. The doubt. The people who told you it wouldn't work. That was the fire. And fire doesn't destroy you. It forges you. So when you're driving through the Alps with nothing but the engine and the road ahead, remember — you earned every mile of this. Through the hell they couldn't handle.",
+    "mood": "dark_to_triumphant",
+    "scenes": ["man_walking_dark_street", "gym_struggle_heavy_weight", "alpine_road_supercar", "engine_revving_closeup", "man_overlooking_mountain_view"]
+  },
+  {
+    "id": "obsessed_not_interested",
+    "script": "See, everybody's interested. Interested in the cars. Interested in the lifestyle. Interested in being rich. But interested people do what's convenient. Obsessed people do what's necessary. Four AM. Nobody's watching. The gym is empty. The streets are dark. And you're already two hours deep while they're still dreaming about what you're building. That's not motivation. That's obsession. And obsession is the only thing that ever built an empire.",
+    "mood": "confrontational",
+    "scenes": ["luxury_cars_showroom", "clock_showing_4am", "empty_gym_one_man", "dark_london_streets", "man_working_desk_night"]
+  },
+  {
+    "id": "pain_is_the_professor",
+    "script": "Pain is not your enemy. Pain is your professor. Every rejection taught you resilience. Every failure taught you hunger. Every sleepless night taught you what you're willing to sacrifice. And sacrifice? That's the tuition for the life they said you couldn't afford. But here you are. Milan. Monaco. Deals closing. Life opening. Because you paid the price they weren't willing to pay.",
+    "mood": "philosophical_power",
+    "scenes": ["man_receiving_rejection", "late_night_working", "sunrise_over_mediterranean", "milan_fashion_district", "handshake_deal_closing"]
+  },
+  {
+    "id": "the_story_you_tell",
+    "script": "The only thing standing between you and the life you want is the story you keep telling yourself. I can't. I'm not ready. It's not the right time. You know what? It's never the right time. The right time is when you decide to stop making excuses and start making moves. Every empire started with one decision. One morning. One choice to be different. Make yours. Right now.",
+    "mood": "urgent_challenge",
+    "scenes": ["mirror_reflection_serious", "man_putting_on_suit", "london_city_morning", "walking_into_building_determined", "skyline_from_office"]
+  },
+  {
+    "id": "they_sleep_you_build",
+    "script": "Three AM. The city is dead. But you're alive. More alive than you've ever been. Because this is the hour that separates the dreamers from the builders. While they sleep, you build. While they scroll, you study. While they complain, you compound. Day after day. Week after week. Until one morning they wake up and wonder how you got so far ahead. You didn't get ahead. They fell behind. You just never stopped.",
+    "mood": "relentless",
+    "scenes": ["city_night_aerial", "man_at_desk_lamplight", "phone_scrolling_vs_books", "calendar_pages_flipping", "man_standing_above_city"]
+  },
+  {
+    "id": "not_over_until_i_win",
+    "script": "It's not over until I win. Say that again. It's not over until I win. I don't care how many times I fall. I don't care how many doors close. I don't care how dark it gets. Because darkness is just the space between where you are and where you're going. And I've been in the dark before. I know how to move through it. The question is — do you? Because the view from the top of Monaco doesn't belong to the people who quit.",
+    "mood": "defiant",
+    "scenes": ["man_falling_getting_up", "closed_door_metaphor", "dark_tunnel_walking", "monaco_hilltop_panorama", "man_standing_victorious"]
+  },
+  {
+    "id": "greatness_within",
+    "script": "You have greatness within you. I need you to hear that. Not talent. Not potential. Greatness. But greatness doesn't come out on its own. You have to drag it out. Through the early mornings and the late nights. Through the doubt and the discipline. It's in the weight you lift when your body says stop. It's in the deal you close when everyone says wait. Greatness is not given. It's taken. By people who refuse to settle for anything less.",
+    "mood": "empowering",
+    "scenes": ["man_looking_in_mirror", "gym_pushing_limits", "boardroom_confidence", "swiss_watch_detail", "man_walking_through_zurich"]
+  },
+  {
+    "id": "mad_as_hell",
+    "script": "You need to get mad. Not angry at the world. Mad at yourself. Mad at every excuse you ever made. Mad at every alarm you snoozed. Mad at every opportunity you let slide because you were comfortable. Comfort is a slow death. And you didn't come this far to die average. So get up. Get dressed. And go take what's yours. The Lamborghini on the Monaco coast doesn't drive itself. Neither does your life.",
+    "mood": "angry_awakening",
+    "scenes": ["alarm_being_smashed", "man_yelling_in_mirror", "getting_dressed_suit", "lamborghini_monaco_coast", "man_driving_determined"]
+  },
+  {
+    "id": "no_plan_b",
+    "script": "Burn the boats. There is no plan B. Plan B is a distraction from plan A. When you eliminate the option of failure, something incredible happens — you find a way. Every single time. The body breaks down. The mind wants to quit. But the soul? The soul knows what you're capable of. And it won't let you rest until you get there. London. Milan. The penthouse with the view. That's not a dream. That's a destination. And you've already started walking.",
+    "mood": "absolute_commitment",
+    "scenes": ["burning_bridge_metaphor", "man_exhausted_but_continuing", "city_lights_reflection", "penthouse_interior_luxury", "man_walking_toward_light"]
+  },
+  {
+    "id": "compound_silence",
+    "script": "Nobody's coming to save you. Let that sink in. Nobody. Not your friends. Not the algorithm. Not luck. Just you. And the work. Every single day. One rep. One call. One page. One hour before the sun comes up. Alone. In silence. Because that's where empires are built. Not on stages. Not in front of cameras. In the dark. In the quiet. Where nobody claps. But everything compounds. Until one day the whole world asks how you did it. And you just smile.",
+    "mood": "stoic_truth",
+    "scenes": ["empty_room_single_light", "man_making_calls", "predawn_sky", "desk_papers_stacked", "man_smiling_subtle_monaco"]
+  },
+  {
+    "id": "prove_them_wrong",
+    "script": "They laughed. They doubted. They said you were wasting your time. Good. Write their names down. Not for revenge. For fuel. Because the sweetest victory is the one nobody believed in but you. Every morning you wake up at four, you prove them wrong. Every deal you close, you prove them wrong. Every mile you drive along the Mediterranean, you prove them wrong. Not with words. With results. And results don't need an explanation.",
+    "mood": "revenge_fuel",
+    "scenes": ["people_laughing_flashback", "man_writing_in_journal", "4am_workout_montage", "mediterranean_drive", "results_on_screen"]
+  },
+  {
+    "id": "one_decision",
+    "script": "Your entire life can change with one decision. One decision to stop accepting less than you deserve. One decision to wake up before the sun and work while the world sleeps. One decision to bet on yourself when nobody else will. That's all it took for every great man who ever lived. One decision. One moment of absolute clarity. Where you looked in the mirror and said — enough. I'm done being average. Today it ends. And something greater begins.",
+    "mood": "turning_point",
+    "scenes": ["man_at_crossroads", "sunrise_breaking", "mirror_intense_stare", "putting_on_watch", "walking_out_door_new_day"]
+  },
+  {
+    "id": "the_price",
+    "script": "Everything has a price. The penthouse in London. The car in Monaco. The freedom to wake up without an alarm. The price isn't money. It's the mornings you wanted to stay in bed but didn't. The nights you wanted to go out but chose the desk instead. The years of silence while everyone else was loud and comfortable. You paid in discipline. You paid in solitude. You paid in sweat. And now? Now you collect.",
+    "mood": "earned_triumph",
+    "scenes": ["london_penthouse_dawn", "man_choosing_desk_over_party", "quiet_night_working", "gym_sweat_closeup", "man_collecting_keys_supercar"]
+  }
+]

@@ -42,7 +42,7 @@
   "image_generation": {
     "api_base_url": "https://generativelanguage.googleapis.com/v1beta",
     "api_key": "",
-    "model": "gemini-2.0-flash-preview-image-generation",
+    "model": "gemini-2.5-flash-image",
     "aspect_ratio": "9:16"
   },
 
