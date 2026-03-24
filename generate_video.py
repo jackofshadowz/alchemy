@@ -40,10 +40,11 @@ VIDEO_PROMPT_RULES = (
     "EXCELLENT (use freely): specific real supercars with EXACT model names "
     "(e.g. 'white 2024 Lamborghini Revuelto', 'red 2023 Ferrari SF90 Stradale', "
     "'black 2024 Porsche 911 GT3 RS', 'grey 2024 McLaren 750S') — always specify color, year, model. "
-    "Dramatic face close-ups with cinematic lighting, luxury watches (Rolex Daytona, AP Royal Oak) on wrist, "
+    "Show cars DRIVING or PARKED, never on fire, never crashing, never damaged. "
+    "Dramatic face close-ups with cinematic lighting, "
     "wide aerial city shots, silhouettes against sunset, ocean waves, "
     "private jet exterior parked on tarmac, gym/weightlifting in motion, "
-    "pouring whiskey or coffee in slow motion, slow-mo suit fabric movement, "
+    "pouring coffee in slow motion, slow-mo suit fabric movement, "
     "smoke and fog effects, reflections on wet surfaces, "
     "bokeh city lights, drone coastline shots, sunrise/sunset landscapes, "
     "swimming pool reflections, sunglasses reflecting city lights.\n"
@@ -58,6 +59,18 @@ VIDEO_PROMPT_RULES = (
     "any readable text or signage, crowded scenes with 3+ people, "
     "specific famous landmarks (gondolas, Eiffel Tower), indoor kitchens or restaurants, "
     "detailed interiors with many small objects, anything requiring readable text.\n"
+    "ABSOLUTELY NEVER: overlays, split-screens, picture-in-picture, clocks, timers, "
+    "montages, collages, text graphics, UI elements, countdowns, or any kind of "
+    "visual compositing. EVERY prompt must be ONE SINGLE continuous camera shot "
+    "of ONE scene. No transitions described in the prompt.\n"
+    "PEOPLE: when showing men working out, they must ALWAYS be wearing a fitted t-shirt "
+    "or athletic long sleeve. NEVER shirtless. Always look professional and put-together, "
+    "even in the gym. No excessive sweat or unflattering angles.\n"
+    "CARS: show them driving smoothly, parked elegantly, or from a cinematic angle. "
+    "NEVER on fire, never with flames from exhaust, never crashed or damaged.\n"
+    "WATCHES: DO NOT generate Rolex or any watch close-ups — AI cannot render watch faces well. "
+    "Instead show luxury through cars, penthouses, suits, and city views.\n"
+    "NO ALCOHOL: never show whiskey, wine, champagne, cocktails, bars, or drinking of any kind.\n"
     "Mix shot types: aerials, close-ups of luxury objects, dramatic face shots, "
     "car driving shots, and silhouettes. Vary the lighting between scenes."
 )
@@ -241,24 +254,37 @@ def main():
     for i, (sent, dur) in enumerate(zip(sentences, timings)):
         info(f"   [{dur:.1f}s] {sent[:60]}")
 
-    # 5. Generate image prompts per sentence
-    info("3. Generating image prompts...")
-    if scene_hints and len(scene_hints) >= len(sentences):
-        hints_str = "\n".join(f"{i+1}. {scene_hints[i]}" for i in range(len(sentences)))
-        prompts_raw = generate_text(
-            f"Expand each scene tag into a detailed cinematic video prompt.\n\n"
-            f"Scenes:\n{hints_str}\n\n"
-            "For each, write ONE detailed sentence describing the shot."
-            + VIDEO_PROMPT_RULES +
-            f"\nReturn ONLY a JSON array of {len(sentences)} strings. No markdown."
-        )
-    else:
-        prompts_raw = generate_text(
-            f"Generate {len(sentences)} cinematic video prompts, one per sentence of this script:\n\n"
-            + "\n".join(f'{i+1}. "{s}"' for i, s in enumerate(sentences))
-            + VIDEO_PROMPT_RULES +
-            f"\nReturn ONLY a JSON array of {len(sentences)} strings. No markdown."
-        )
+    # 5. Generate video prompts — sentence-matched + scroll-stopping opener
+    info("3. Generating video prompts...")
+
+    # Generate a large pool of rapid-fire montage clips
+    # ~3x the number of sentences for rapid cuts
+    num_clips = min(len(sentences) * 2, 20)
+
+    sentence_list = "\n".join(f'  {i+1}. "{s}"' for i, s in enumerate(sentences))
+
+    prompts_raw = generate_text(
+        "You are a visual director for a rapid-fire motivational YouTube Short montage. "
+        f"Generate exactly {num_clips} cinematic video shot descriptions.\n\n"
+        f"SCRIPT (for thematic context):\n{sentence_list}\n\n"
+        "RULES:\n"
+        f"1. FIRST 3 PROMPTS must be SCROLL-STOPPERS — the most visually jaw-dropping shots possible. "
+        "Examples: extreme close-up of a red 2023 Ferrari SF90 Stradale exhaust with flames, "
+        "dramatic slow-motion face of a young man with sweat dripping staring into camera, "
+        "a black 2024 Lamborghini Revuelto launching with tire smoke in slow motion, "
+        "close-up of a Rolex Daytona face reflecting city lights. "
+        "These must make someone STOP SCROLLING instantly.\n\n"
+        "2. Shots should loosely follow the script's emotional arc — "
+        "start with intensity/struggle, move through grind/work, end with luxury/triumph.\n\n"
+        "3. Every prompt is a SINGLE continuous camera shot. No overlays, no split-screens, "
+        "no compositing, no text, no clocks, no UI elements.\n\n"
+        f"4. LAST 3 PROMPTS should be peak luxury/triumph: supercars, penthouses, "
+        "couple walking into sunset, aerial Monaco, etc.\n\n"
+        "5. Vary shot types rapidly: close-up object, wide aerial, face, car, silhouette, "
+        "gym, cityscape. Never put two similar shots next to each other.\n"
+        + VIDEO_PROMPT_RULES +
+        f"\nReturn ONLY a JSON array of exactly {num_clips} strings. No markdown."
+    )
 
     prompts_raw = prompts_raw.replace("```json", "").replace("```", "").strip()
     try:
@@ -267,19 +293,22 @@ def main():
         match = re.search(r"\[.*\]", prompts_raw, re.DOTALL)
         image_prompts = json.loads(match.group()) if match else []
 
-    # Pad if needed
-    while len(image_prompts) < len(sentences):
-        image_prompts.append(f"Cinematic European scene, dramatic lighting, young man, luxury")
-    image_prompts = image_prompts[:len(sentences)]
-    success(f"   {len(image_prompts)} prompts")
+    while len(image_prompts) < num_clips:
+        image_prompts.append("Cinematic aerial shot of a European coastal city at golden hour")
+    image_prompts = image_prompts[:num_clips]
 
-    # 6. Generate clips — T2V for each sentence
+    info(f"   {len(image_prompts)} montage prompts (rapid-fire)")
+    for i, p in enumerate(image_prompts[:5]):
+        info(f"   [{i+1}] {p[:70]}...")
+    info(f"   ... and {len(image_prompts) - 5} more")
+
+    # 6. Generate clips — rapid-fire montage
     info("4. Generating video clips...")
     clip_paths = []
     for i, prompt in enumerate(image_prompts):
         clip_path = os.path.join(mp_dir, f"clip_{vid_id}_{i:02d}.mp4")
         full_prompt = f"{prompt}. {IMAGE_STYLE}"
-        info(f"   [{i+1}/{len(sentences)}] Generating clip...")
+        info(f"   [{i+1}/{len(image_prompts)}] Generating clip...")
 
         t0 = time.time()
         try:
@@ -301,13 +330,16 @@ def main():
         error("No clips generated!")
         return
 
-    # 7. Build concat file for ffmpeg with per-clip durations
+    # 7. Build rapid-fire montage
     info("5. Compositing video...")
 
-    # First, trim/loop each clip to its target duration
+    # Each clip gets an equal slice of total duration (rapid cuts)
+    clip_dur = total_dur / len(valid)
+    info(f"   {len(valid)} clips x {clip_dur:.2f}s each = {total_dur:.1f}s")
+
     trimmed_paths = []
     for idx, path in valid:
-        target_dur = timings[idx]
+        target_dur = clip_dur
         trimmed = os.path.join(mp_dir, f"trimmed_{vid_id}_{idx:02d}.mp4")
         # Scale to 1080x1920 (9:16) and trim to target duration
         subprocess.run([
@@ -316,103 +348,44 @@ def main():
             "-i", path,
             "-t", str(target_dur),
             "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
-            "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "18",
             "-an",  # no audio yet
             "-r", "24",
             trimmed,
         ], capture_output=True)
         trimmed_paths.append(trimmed)
 
-    # Concatenate clips with short crossfade transitions via ffmpeg xfade
+    # Hard-cut concat — rapid-fire montage style, no crossfades
     raw_video = os.path.join(mp_dir, f"raw_{vid_id}.mp4")
-    XFADE_DUR = 0.3  # 300ms crossfade
-
-    if len(trimmed_paths) == 1:
-        # Just copy
-        subprocess.run(["cp", trimmed_paths[0], raw_video], capture_output=True)
-    else:
-        # Build xfade filter chain
-        inputs = []
+    concat_list = os.path.join(mp_dir, f"concat_{vid_id}.txt")
+    with open(concat_list, "w") as f:
         for p in trimmed_paths:
-            inputs.extend(["-i", os.path.abspath(p)])
+            f.write(f"file '{os.path.abspath(p)}'\n")
+    subprocess.run([
+        "ffmpeg", "-y",
+        "-f", "concat", "-safe", "0",
+        "-i", concat_list,
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "18",
+        "-r", "24",
+        raw_video,
+    ], capture_output=True)
 
-        # Calculate offsets for each transition
-        filter_parts = []
-        offsets = []
-        cumulative = 0.0
-        for i in range(len(trimmed_paths)):
-            idx_in_valid = valid[i][0] if i < len(valid) else i
-            dur = timings[idx_in_valid] if idx_in_valid < len(timings) else 2.0
-            if i == 0:
-                cumulative = dur - XFADE_DUR
-            else:
-                cumulative += dur - XFADE_DUR
-            offsets.append(cumulative)
-
-        # Build filter: chain xfade between each pair
-        n = len(trimmed_paths)
-        if n == 2:
-            filter_parts.append(f"[0:v][1:v]xfade=transition=fade:duration={XFADE_DUR}:offset={offsets[0]:.3f}[v]")
-        else:
-            # First pair
-            filter_parts.append(f"[0:v][1:v]xfade=transition=fade:duration={XFADE_DUR}:offset={offsets[0]:.3f}[v1]")
-            # Middle pairs
-            for i in range(2, n):
-                prev = f"v{i-1}"
-                if i == n - 1:
-                    out = "v"
-                else:
-                    out = f"v{i}"
-                filter_parts.append(f"[{prev}][{i}:v]xfade=transition=fade:duration={XFADE_DUR}:offset={offsets[i-1]:.3f}[{out}]")
-
-        filter_str = ";".join(filter_parts)
-
-        cmd = ["ffmpeg", "-y"] + inputs + [
-            "-filter_complex", filter_str,
-            "-map", "[v]",
-            "-c:v", "libx264", "-preset", "fast", "-crf", "18",
-            "-r", "24",
-            raw_video,
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-
-        # Fallback to simple concat if xfade fails
-        if not os.path.exists(raw_video) or os.path.getsize(raw_video) < 1000:
-            warning("   Crossfade failed, using hard cuts...")
-            concat_list = os.path.join(mp_dir, f"concat_{vid_id}.txt")
-            with open(concat_list, "w") as f:
-                for p in trimmed_paths:
-                    f.write(f"file '{os.path.abspath(p)}'\n")
-            subprocess.run([
-                "ffmpeg", "-y",
-                "-f", "concat", "-safe", "0",
-                "-i", concat_list,
-                "-c:v", "libx264", "-preset", "fast", "-crf", "18",
-                "-r", "24",
-                raw_video,
-            ], capture_output=True)
-
-    # 8. Add subtitles as SRT
+    # 8. Add subtitles as SRT (timed to sentences, not clips)
     info("6. Generating subtitles...")
     srt_path = os.path.join(mp_dir, f"subs_{vid_id}.srt")
     srt_lines = []
     cumulative = 0.0
+
+    def fmt(s):
+        ms = max(0, int(round(s * 1000)))
+        h, ms = divmod(ms, 3600000)
+        m, ms = divmod(ms, 60000)
+        sec, ms = divmod(ms, 1000)
+        return f"{h:02d}:{m:02d}:{sec:02d},{ms:03d}"
+
     for i, (sent, dur) in enumerate(zip(sentences, timings)):
-        # Only include timings for valid clips
-        if i < len(valid):
-            start = cumulative
-            end = cumulative + timings[valid[i][0]] if i < len(valid) else cumulative + dur
-        else:
-            start = cumulative
-            end = cumulative + dur
-
-        def fmt(s):
-            ms = max(0, int(round(s * 1000)))
-            h, ms = divmod(ms, 3600000)
-            m, ms = divmod(ms, 60000)
-            sec, ms = divmod(ms, 1000)
-            return f"{h:02d}:{m:02d}:{sec:02d},{ms:03d}"
-
+        start = cumulative
+        end = cumulative + dur
         srt_lines.extend([str(i + 1), f"{fmt(start)} --> {fmt(end)}", sent.upper(), ""])
         cumulative += dur
 
