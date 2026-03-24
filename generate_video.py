@@ -1,5 +1,6 @@
 """
-Alchemy video generator — cinematic motivational shorts.
+Alchemy — Full cinematic motivational short generator.
+Script library → Qwen images → Helios animation → Kokoro voice → ffmpeg composite
 """
 import sys
 sys.path.insert(0, "src")
@@ -7,403 +8,492 @@ sys.path.insert(0, "src")
 import os
 import re
 import json
-import base64
-import requests
-import modal
+import time
 import random
 import subprocess
+import requests
+import modal
 import numpy as np
 
 from uuid import uuid4
-from config import (
-    ROOT_DIR, assert_folder_structure, get_verbose, get_threads,
-    get_image_gen_api_key, get_image_gen_api_base_url, get_image_gen_model,
-    get_image_gen_aspect_ratio, get_font, get_fonts_dir, get_imagemagick_path,
-)
+from config import ROOT_DIR, assert_folder_structure, get_font, get_fonts_dir, get_imagemagick_path
 from llm_provider import init_provider, generate_text
 from status import info, success, warning, error
-from moviepy.editor import (
-    AudioFileClip, ImageClip, TextClip, CompositeVideoClip,
-    CompositeAudioClip, concatenate_videoclips, afx, vfx,
-)
-from moviepy.video.fx.all import crop
-from moviepy.config import change_settings
-
-change_settings({"IMAGEMAGICK_BINARY": get_imagemagick_path()})
-
-from PIL import Image
-if not hasattr(Image, "ANTIALIAS"):
-    Image.ANTIALIAS = Image.LANCZOS
 
 # ─── CONFIG ───
-NICHE = "motivational grindset for young men — European luxury lifestyle, discipline, wealth, supercars, Monaco, London, Milan"
-LANGUAGE = "English"
-NUM_IMAGES = 5
 VOICE = "am_adam"
-
-IMAGE_STYLE = (
-    "Photorealistic cinematic still from a Netflix docuseries. "
-    "Shot on ARRI Alexa Mini LF, Cooke S7/i lens, f/1.4 shallow depth of field. "
-    "Natural dramatic lighting, warm amber highlights, deep shadow tones. "
-    "European setting. Western European young man, mid-20s. "
-    "9:16 vertical portrait composition. No text, no watermarks."
-)
-
+VOICE_SPEED = 0.85
 QWEN_API_KEY = "sk-a104311e82c44e9f8a70df2a32ec75b6"
 QWEN_BASE = "https://dashscope-intl.aliyuncs.com/api/v1"
 
+IMAGE_STYLE = (
+    "Photorealistic cinematic still from a Netflix docuseries. "
+    "Shot on ARRI Alexa Mini LF, Cooke S7/i lens, shallow depth of field. "
+    "Natural dramatic lighting, warm amber highlights, deep shadows. "
+    "European setting. Western European young man, mid-20s. "
+    "9:16 vertical portrait composition. No text, no watermarks, no Asian settings."
+)
 
-# ─── IMAGE GENERATION ───
+# Guide the AI video model into its strengths, avoid common failure modes
+VIDEO_PROMPT_RULES = (
+    "\n\nCRITICAL RULES FOR VIDEO PROMPTS — these will be animated by AI video:\n"
+    "EXCELLENT (use freely): specific real supercars with EXACT model names "
+    "(e.g. 'white 2024 Lamborghini Revuelto', 'red 2023 Ferrari SF90 Stradale', "
+    "'black 2024 Porsche 911 GT3 RS', 'grey 2024 McLaren 750S') — always specify color, year, model. "
+    "Dramatic face close-ups with cinematic lighting, luxury watches (Rolex Daytona, AP Royal Oak) on wrist, "
+    "wide aerial city shots, silhouettes against sunset, ocean waves, "
+    "private jet exterior parked on tarmac, gym/weightlifting in motion, "
+    "pouring whiskey or coffee in slow motion, slow-mo suit fabric movement, "
+    "smoke and fog effects, reflections on wet surfaces, "
+    "bokeh city lights, drone coastline shots, sunrise/sunset landscapes, "
+    "swimming pool reflections, sunglasses reflecting city lights.\n"
+    "HELICOPTER/AIRCRAFT: always show from the ground looking up, or parked static. "
+    "NEVER show helicopters flying sideways or doing unrealistic movements.\n"
+    "TASTEFUL COUPLE SHOTS (use sparingly, max 1 per video): "
+    "couple walking away from camera along a waterfront at sunset, "
+    "couple seen from behind in silhouette, elegant woman's hand on man's arm while walking, "
+    "couple from far away on a balcony overlooking a city. "
+    "ALWAYS from behind or in silhouette. NEVER facing camera. Wholesome, elegant, classy.\n"
+    "AVOID (AI will butcher these): detailed hand manipulation (typing, writing), "
+    "any readable text or signage, crowded scenes with 3+ people, "
+    "specific famous landmarks (gondolas, Eiffel Tower), indoor kitchens or restaurants, "
+    "detailed interiors with many small objects, anything requiring readable text.\n"
+    "Mix shot types: aerials, close-ups of luxury objects, dramatic face shots, "
+    "car driving shots, and silhouettes. Vary the lighting between scenes."
+)
 
-def generate_image_qwen(prompt, max_retries=3):
-    import time
+
+# ─── QWEN IMAGE GEN ───
+
+def generate_image_qwen(prompt, output_path, max_retries=3):
     endpoint = f"{QWEN_BASE}/services/aigc/multimodal-generation/generation"
-
     for attempt in range(max_retries):
         resp = requests.post(
             endpoint,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {QWEN_API_KEY}",
-            },
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {QWEN_API_KEY}"},
             json={
                 "model": "qwen-image-2.0-pro",
-                "input": {
-                    "messages": [{"role": "user", "content": [{"text": prompt}]}]
-                },
+                "input": {"messages": [{"role": "user", "content": [{"text": prompt}]}]},
                 "parameters": {"size": "720*1280", "n": 1, "prompt_extend": True},
             },
             timeout=120,
         )
-
         if resp.status_code == 429:
             wait = 15 * (attempt + 1)
-            warning(f"  Rate limited, waiting {wait}s...")
+            warning(f"    Rate limited, waiting {wait}s...")
             time.sleep(wait)
             continue
-
         if resp.status_code != 200:
-            warning(f"  Qwen error {resp.status_code}: {resp.text[:200]}")
-            return None
-
+            warning(f"    Qwen error: {resp.status_code}")
+            return False
         body = resp.json()
         for choice in body.get("output", {}).get("choices", []):
             for part in choice.get("message", {}).get("content", []):
-                image_url = part.get("image")
-                if image_url:
-                    img_resp = requests.get(image_url, timeout=60)
-                    img_resp.raise_for_status()
-                    path = os.path.join(ROOT_DIR, ".mp", f"{uuid4()}.png")
-                    with open(path, "wb") as f:
-                        f.write(img_resp.content)
-                    success(f"  Image saved ({len(img_resp.content)//1024}KB)")
-                    return path
-        return None
-    return None
+                url = part.get("image")
+                if url:
+                    img = requests.get(url, timeout=60)
+                    with open(output_path, "wb") as f:
+                        f.write(img.content)
+                    return True
+        return False
+    return False
 
 
-# ─── KEN BURNS EFFECT ───
+# ─── HELIOS VIDEO GEN ───
 
-def ken_burns_clip(image_path, duration, direction="zoom_in"):
-    """Create a clip with slow zoom/pan (Ken Burns effect)."""
-    img = ImageClip(image_path)
+def animate_image(image_path, prompt, output_path):
+    """Animate a static image into a ~2s video clip using Helios."""
+    video_cls = modal.Cls.from_name("alchemy-video", "HeliosVideo")
+    video = video_cls()
 
-    # Target 1080x1920, but work at higher res for zoom headroom
-    base_w, base_h = 1080, 1920
-    headroom = 1.15  # 15% zoom range
+    with open(image_path, "rb") as f:
+        image_bytes = f.read()
 
-    # Resize image to fill with headroom
-    img = img.resize(height=int(base_h * headroom))
-    if img.w < base_w * headroom:
-        img = img.resize(width=int(base_w * headroom))
+    mp4_bytes = video.generate_i2v.remote(
+        image_bytes=image_bytes,
+        prompt=prompt,
+        num_frames=49,  # ~2s at 24fps
+        height=384,
+        width=640,
+    )
 
-    img_w, img_h = img.w, img.h
-
-    if direction == "zoom_in":
-        def make_frame(get_frame, t):
-            progress = t / duration
-            scale = 1.0 + progress * 0.12  # zoom in 12%
-            cw = int(base_w / scale)
-            ch = int(base_h / scale)
-            cx = (img_w - cw) // 2
-            cy = (img_h - ch) // 2
-            frame = get_frame(t)
-            cropped = frame[cy:cy+ch, cx:cx+cw]
-            from PIL import Image as PILImage
-            pil = PILImage.fromarray(cropped)
-            pil = pil.resize((base_w, base_h), PILImage.LANCZOS)
-            return np.array(pil)
-        result = img.set_duration(duration).fl(make_frame)
-
-    elif direction == "zoom_out":
-        def make_frame(get_frame, t):
-            progress = t / duration
-            scale = 1.12 - progress * 0.12  # zoom out
-            cw = int(base_w / scale)
-            ch = int(base_h / scale)
-            cx = (img_w - cw) // 2
-            cy = (img_h - ch) // 2
-            frame = get_frame(t)
-            cropped = frame[cy:cy+ch, cx:cx+cw]
-            from PIL import Image as PILImage
-            pil = PILImage.fromarray(cropped)
-            pil = pil.resize((base_w, base_h), PILImage.LANCZOS)
-            return np.array(pil)
-        result = img.set_duration(duration).fl(make_frame)
-
-    elif direction == "pan_left":
-        def make_frame(get_frame, t):
-            progress = t / duration
-            frame = get_frame(t)
-            max_pan = img_w - base_w
-            cx = int(max_pan * (1 - progress))
-            cropped = frame[:base_h, cx:cx+base_w]
-            if cropped.shape[0] < base_h or cropped.shape[1] < base_w:
-                from PIL import Image as PILImage
-                pil = PILImage.fromarray(frame)
-                pil = pil.resize((base_w, base_h), PILImage.LANCZOS)
-                return np.array(pil)
-            return cropped
-        result = img.set_duration(duration).fl(make_frame)
-
-    else:  # pan_right
-        def make_frame(get_frame, t):
-            progress = t / duration
-            frame = get_frame(t)
-            max_pan = img_w - base_w
-            cx = int(max_pan * progress)
-            cropped = frame[:base_h, cx:cx+base_w]
-            if cropped.shape[0] < base_h or cropped.shape[1] < base_w:
-                from PIL import Image as PILImage
-                pil = PILImage.fromarray(frame)
-                pil = pil.resize((base_w, base_h), PILImage.LANCZOS)
-                return np.array(pil)
-            return cropped
-        result = img.set_duration(duration).fl(make_frame)
-
-    return result.set_fps(30)
+    with open(output_path, "wb") as f:
+        f.write(mp4_bytes)
+    return True
 
 
-# ─── MAIN ───
+def generate_clip_t2v(prompt, output_path):
+    """Generate a clip directly from text prompt."""
+    video_cls = modal.Cls.from_name("alchemy-video", "HeliosVideo")
+    video = video_cls()
+
+    mp4_bytes = video.generate_t2v.remote(
+        prompt=prompt,
+        num_frames=49,
+        height=384,
+        width=640,
+    )
+
+    with open(output_path, "wb") as f:
+        f.write(mp4_bytes)
+    return True
+
+
+# ─── TTS ───
+
+def generate_voice(script, output_path):
+    """Generate voiceover via Kokoro TTS on Modal."""
+    import soundfile as sf
+    from scipy.signal import resample as scipy_resample
+
+    clean = re.sub(r"[^\w\s.?!,'\-]", "", script)
+
+    tts_cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
+    tts = tts_cls()
+    wav_bytes = tts.synthesize.remote(clean, voice=VOICE, speed=VOICE_SPEED)
+
+    # Write raw, then normalize + resample
+    raw_path = output_path + ".raw.wav"
+    with open(raw_path, "wb") as f:
+        f.write(wav_bytes)
+
+    data, sr = sf.read(raw_path)
+    # Normalize
+    peak = np.abs(data).max()
+    if peak > 0:
+        data = data / peak * 0.92
+    # Resample to 44100
+    if sr != 44100:
+        num = int(len(data) * 44100 / sr)
+        data = scipy_resample(data, num)
+        sr = 44100
+    # Mono to stereo
+    if data.ndim == 1:
+        data = np.column_stack([data, data])
+
+    sf.write(output_path, data, sr)
+    os.remove(raw_path)
+    return output_path
+
+
+# ─── SENTENCE SPLITTING + TIMING ───
+
+def split_sentences(script):
+    """Split script into sentences, preserving fragments like 'Day after day.'"""
+    raw = re.split(r'(?<=[.!?])\s+', script)
+    return [s.strip() for s in raw if s.strip()]
+
+
+def calculate_timings(sentences, total_duration):
+    """Variable timing: short sentences get less time, long ones get more."""
+    lengths = [len(s) for s in sentences]
+    total_chars = sum(lengths)
+    timings = []
+    for length in lengths:
+        # Weight by character count, but with a minimum of 1.5s
+        t = max(1.5, (length / total_chars) * total_duration)
+        timings.append(t)
+
+    # Normalize to fit total duration
+    scale = total_duration / sum(timings)
+    timings = [t * scale for t in timings]
+    return timings
+
+
+# ─── MAIN PIPELINE ───
 
 def main():
-    import time
-
     assert_folder_structure()
     init_provider()
 
-    # 1. Pick script from curated library
-    info("Step 1: Loading script...")
-    library_path = os.path.join(ROOT_DIR, "scripts_library.json")
-    with open(library_path, "r") as f:
-        scripts_library = json.load(f)
-
-    entry = random.choice(scripts_library)
-    script = entry["script"]
-    scene_hints = entry.get("scenes", [])
-    mood = entry.get("mood", "determined")
-    success(f"Script:\n  {script}")
-
-    # 2. Generate image prompts from scene hints
-    info("Step 2: Generating image prompts...")
-    if scene_hints and len(scene_hints) >= NUM_IMAGES:
-        # Use LLM to expand the scene hints into full cinematic descriptions
-        hints_str = "\n".join(f"{i+1}. {h}" for i, h in enumerate(scene_hints[:NUM_IMAGES]))
-        prompts_raw = generate_text(
-            f"Expand each of these scene descriptions into a detailed cinematic image prompt.\n\n"
-            f"Scene list:\n{hints_str}\n\n"
-            "For EACH scene, write one detailed paragraph describing:\n"
-            "- Exact camera angle and lens (low angle, aerial, close-up, over-the-shoulder)\n"
-            "- Specific European location details\n"
-            "- Lighting conditions (golden hour, pre-dawn blue, neon reflections)\n"
-            "- What the young Western European man (mid-20s, athletic) is doing\n"
-            "- Mood and atmosphere\n\n"
-            f"Return ONLY a JSON array of exactly {NUM_IMAGES} strings. No markdown."
-        )
-        prompts_raw = prompts_raw.replace("```json", "").replace("```", "").strip()
-        try:
-            image_prompts = json.loads(prompts_raw)
-        except Exception:
-            match = re.search(r"\[.*\]", prompts_raw, re.DOTALL)
-            image_prompts = json.loads(match.group()) if match else []
-    else:
-        image_prompts = []
-
-    # Fallback defaults
-    if len(image_prompts) < NUM_IMAGES:
-        defaults = [
-            "Low angle shot of a young man silhouetted against Monaco harbor at pre-dawn, city lights reflecting on water",
-            "Close-up of hands gripping a Lamborghini steering wheel, Swiss mountain road curving ahead, golden hour light",
-            "Aerial cinematic shot of a man in a dark suit walking through Milan Galleria Vittorio Emanuele at night, wet reflections",
-            "Over-the-shoulder shot through floor-to-ceiling windows of a London penthouse, man at desk, city lights below",
-            "Wide dramatic shot of a supercar on a winding Amalfi Coast road, sunset, ocean in background",
-        ]
-        image_prompts.extend(defaults[len(image_prompts):NUM_IMAGES])
-
-    image_prompts = image_prompts[:NUM_IMAGES]
-    success(f"Got {len(image_prompts)} prompts")
-
-    # 3. Generate images
-    info("Step 3: Generating images...")
-    images = []
-    for i, prompt in enumerate(image_prompts):
-        if i > 0:
-            time.sleep(3)
-        full_prompt = f"{prompt}. {IMAGE_STYLE}"
-        info(f"  [{i+1}/{NUM_IMAGES}] {prompt[:70]}...")
-        path = generate_image_qwen(full_prompt)
-        if path:
-            images.append(path)
-        else:
-            warning(f"  Failed, skipping")
-
-    if len(images) < 2:
-        error("Not enough images generated.")
-        return
-
-    # 4. TTS
-    info("Step 4: Generating voiceover...")
-    clean_script = re.sub(r"[^\w\s.?!,']", "", script)
-    tts_cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
-    tts = tts_cls()
-    wav_bytes = tts.synthesize.remote(clean_script, voice=VOICE, speed=0.85)
-    tts_path = os.path.join(ROOT_DIR, ".mp", f"voice_{uuid4()}.wav")
-    with open(tts_path, "wb") as f:
-        f.write(wav_bytes)
-
-    # Normalize and convert to stereo 44100Hz
-    import soundfile as sf
-    from scipy.signal import resample
-    audio_data, audio_sr = sf.read(tts_path)
-    max_amp = np.abs(audio_data).max()
-    if max_amp > 0:
-        audio_data = audio_data / max_amp * 0.92
-    if audio_sr != 44100:
-        num_samples = int(len(audio_data) * 44100 / audio_sr)
-        audio_data = resample(audio_data, num_samples)
-        audio_sr = 44100
-    if audio_data.ndim == 1:
-        audio_data = np.column_stack([audio_data, audio_data])
-    sf.write(tts_path, audio_data, audio_sr)
-    success(f"Voice: {tts_path}")
-
-    # 5. Build video with Ken Burns effect + crossfade
-    info("Step 5: Building video...")
-    tts_clip = AudioFileClip(tts_path)
-    total_duration = tts_clip.duration
-    clip_duration = total_duration / len(images)
-
-    directions = ["zoom_in", "zoom_out", "pan_left", "pan_right", "zoom_in"]
-    clips = []
-    for i, img_path in enumerate(images):
-        direction = directions[i % len(directions)]
-        dur = clip_duration + 0.5  # slight overlap for crossfade
-        clip = ken_burns_clip(img_path, dur, direction)
-        # Add fade
-        clip = clip.crossfadein(0.4)
-        clips.append(clip)
-
-    # Concatenate with crossfade
-    from moviepy.editor import concatenate_videoclips
-    video = concatenate_videoclips(clips, method="compose", padding=-0.4)
-    video = video.set_duration(total_duration)
-    video = video.set_fps(30)
-
-    # 6. Subtitles — word-by-word style at bottom third
-    info("Step 6: Adding subtitles...")
-    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', clean_script) if s.strip()]
-    dur_per = total_duration / len(sentences) if sentences else total_duration
-
-    subtitle_clips = []
-    for i, sentence in enumerate(sentences):
-        start = i * dur_per
-        end = (i + 1) * dur_per
-        txt = TextClip(
-            sentence.upper(),
-            font=os.path.join(get_fonts_dir(), get_font()),
-            fontsize=72,
-            color="white",
-            stroke_color="black",
-            stroke_width=3,
-            size=(980, None),
-            method="caption",
-        ).set_position(("center", 1550)).set_start(start).set_duration(end - start)
-        # Fade in/out
-        txt = txt.crossfadein(0.2).crossfadeout(0.2)
-        subtitle_clips.append(txt)
-
-    video = CompositeVideoClip([video] + subtitle_clips, size=(1080, 1920))
-
-    # 7. Write video WITHOUT audio first (MoviePy audio embedding is broken)
-    info("Step 7: Rendering video...")
+    mp_dir = os.path.join(ROOT_DIR, ".mp")
     videos_dir = os.path.join(ROOT_DIR, "videos")
     os.makedirs(videos_dir, exist_ok=True)
+
     vid_id = str(uuid4())[:8]
 
-    temp_video = os.path.join(ROOT_DIR, ".mp", f"temp_{vid_id}.mp4")
-    video.write_videofile(temp_video, threads=get_threads(), audio=False)
+    # 1. Pick script
+    info("1. Loading script...")
+    with open(os.path.join(ROOT_DIR, "scripts_library.json")) as f:
+        library = json.load(f)
+    entry = random.choice(library)
+    script = entry["script"]
+    scene_hints = entry.get("scenes", [])
+    success(f"   Script [{entry['id']}]: {script[:80]}...")
 
-    # 8. Pick background music and mux with ffmpeg
-    info("Step 8: Adding audio with ffmpeg...")
+    # 2. Split into sentences
+    sentences = split_sentences(script)
+    info(f"   {len(sentences)} sentences")
+
+    # 3. Generate voiceover first (to get total duration)
+    info("2. Generating voiceover...")
+    voice_path = os.path.join(mp_dir, f"voice_{vid_id}.wav")
+    generate_voice(script, voice_path)
+
+    from moviepy.editor import AudioFileClip
+    voice_clip = AudioFileClip(voice_path)
+    total_dur = voice_clip.duration
+    voice_clip.close()
+    success(f"   Voice: {total_dur:.1f}s")
+
+    # 4. Calculate per-sentence timings
+    timings = calculate_timings(sentences, total_dur)
+    for i, (sent, dur) in enumerate(zip(sentences, timings)):
+        info(f"   [{dur:.1f}s] {sent[:60]}")
+
+    # 5. Generate image prompts per sentence
+    info("3. Generating image prompts...")
+    if scene_hints and len(scene_hints) >= len(sentences):
+        hints_str = "\n".join(f"{i+1}. {scene_hints[i]}" for i in range(len(sentences)))
+        prompts_raw = generate_text(
+            f"Expand each scene tag into a detailed cinematic video prompt.\n\n"
+            f"Scenes:\n{hints_str}\n\n"
+            "For each, write ONE detailed sentence describing the shot."
+            + VIDEO_PROMPT_RULES +
+            f"\nReturn ONLY a JSON array of {len(sentences)} strings. No markdown."
+        )
+    else:
+        prompts_raw = generate_text(
+            f"Generate {len(sentences)} cinematic video prompts, one per sentence of this script:\n\n"
+            + "\n".join(f'{i+1}. "{s}"' for i, s in enumerate(sentences))
+            + VIDEO_PROMPT_RULES +
+            f"\nReturn ONLY a JSON array of {len(sentences)} strings. No markdown."
+        )
+
+    prompts_raw = prompts_raw.replace("```json", "").replace("```", "").strip()
+    try:
+        image_prompts = json.loads(prompts_raw)
+    except Exception:
+        match = re.search(r"\[.*\]", prompts_raw, re.DOTALL)
+        image_prompts = json.loads(match.group()) if match else []
+
+    # Pad if needed
+    while len(image_prompts) < len(sentences):
+        image_prompts.append(f"Cinematic European scene, dramatic lighting, young man, luxury")
+    image_prompts = image_prompts[:len(sentences)]
+    success(f"   {len(image_prompts)} prompts")
+
+    # 6. Generate clips — T2V for each sentence
+    info("4. Generating video clips...")
+    clip_paths = []
+    for i, prompt in enumerate(image_prompts):
+        clip_path = os.path.join(mp_dir, f"clip_{vid_id}_{i:02d}.mp4")
+        full_prompt = f"{prompt}. {IMAGE_STYLE}"
+        info(f"   [{i+1}/{len(sentences)}] Generating clip...")
+
+        t0 = time.time()
+        try:
+            generate_clip_t2v(full_prompt, clip_path)
+            elapsed = time.time() - t0
+            success(f"   [{i+1}] Done in {elapsed:.1f}s")
+            clip_paths.append(clip_path)
+        except Exception as e:
+            warning(f"   [{i+1}] Failed: {e}")
+            clip_paths.append(None)
+
+        # Small delay between clips
+        if i < len(sentences) - 1:
+            time.sleep(1)
+
+    # Filter out failed clips
+    valid = [(i, p) for i, p in enumerate(clip_paths) if p is not None]
+    if not valid:
+        error("No clips generated!")
+        return
+
+    # 7. Build concat file for ffmpeg with per-clip durations
+    info("5. Compositing video...")
+
+    # First, trim/loop each clip to its target duration
+    trimmed_paths = []
+    for idx, path in valid:
+        target_dur = timings[idx]
+        trimmed = os.path.join(mp_dir, f"trimmed_{vid_id}_{idx:02d}.mp4")
+        # Scale to 1080x1920 (9:16) and trim to target duration
+        subprocess.run([
+            "ffmpeg", "-y",
+            "-stream_loop", "-1",  # loop if clip is shorter than target
+            "-i", path,
+            "-t", str(target_dur),
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-an",  # no audio yet
+            "-r", "24",
+            trimmed,
+        ], capture_output=True)
+        trimmed_paths.append(trimmed)
+
+    # Concatenate clips with short crossfade transitions via ffmpeg xfade
+    raw_video = os.path.join(mp_dir, f"raw_{vid_id}.mp4")
+    XFADE_DUR = 0.3  # 300ms crossfade
+
+    if len(trimmed_paths) == 1:
+        # Just copy
+        subprocess.run(["cp", trimmed_paths[0], raw_video], capture_output=True)
+    else:
+        # Build xfade filter chain
+        inputs = []
+        for p in trimmed_paths:
+            inputs.extend(["-i", os.path.abspath(p)])
+
+        # Calculate offsets for each transition
+        filter_parts = []
+        offsets = []
+        cumulative = 0.0
+        for i in range(len(trimmed_paths)):
+            idx_in_valid = valid[i][0] if i < len(valid) else i
+            dur = timings[idx_in_valid] if idx_in_valid < len(timings) else 2.0
+            if i == 0:
+                cumulative = dur - XFADE_DUR
+            else:
+                cumulative += dur - XFADE_DUR
+            offsets.append(cumulative)
+
+        # Build filter: chain xfade between each pair
+        n = len(trimmed_paths)
+        if n == 2:
+            filter_parts.append(f"[0:v][1:v]xfade=transition=fade:duration={XFADE_DUR}:offset={offsets[0]:.3f}[v]")
+        else:
+            # First pair
+            filter_parts.append(f"[0:v][1:v]xfade=transition=fade:duration={XFADE_DUR}:offset={offsets[0]:.3f}[v1]")
+            # Middle pairs
+            for i in range(2, n):
+                prev = f"v{i-1}"
+                if i == n - 1:
+                    out = "v"
+                else:
+                    out = f"v{i}"
+                filter_parts.append(f"[{prev}][{i}:v]xfade=transition=fade:duration={XFADE_DUR}:offset={offsets[i-1]:.3f}[{out}]")
+
+        filter_str = ";".join(filter_parts)
+
+        cmd = ["ffmpeg", "-y"] + inputs + [
+            "-filter_complex", filter_str,
+            "-map", "[v]",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-r", "24",
+            raw_video,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Fallback to simple concat if xfade fails
+        if not os.path.exists(raw_video) or os.path.getsize(raw_video) < 1000:
+            warning("   Crossfade failed, using hard cuts...")
+            concat_list = os.path.join(mp_dir, f"concat_{vid_id}.txt")
+            with open(concat_list, "w") as f:
+                for p in trimmed_paths:
+                    f.write(f"file '{os.path.abspath(p)}'\n")
+            subprocess.run([
+                "ffmpeg", "-y",
+                "-f", "concat", "-safe", "0",
+                "-i", concat_list,
+                "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+                "-r", "24",
+                raw_video,
+            ], capture_output=True)
+
+    # 8. Add subtitles as SRT
+    info("6. Generating subtitles...")
+    srt_path = os.path.join(mp_dir, f"subs_{vid_id}.srt")
+    srt_lines = []
+    cumulative = 0.0
+    for i, (sent, dur) in enumerate(zip(sentences, timings)):
+        # Only include timings for valid clips
+        if i < len(valid):
+            start = cumulative
+            end = cumulative + timings[valid[i][0]] if i < len(valid) else cumulative + dur
+        else:
+            start = cumulative
+            end = cumulative + dur
+
+        def fmt(s):
+            ms = max(0, int(round(s * 1000)))
+            h, ms = divmod(ms, 3600000)
+            m, ms = divmod(ms, 60000)
+            sec, ms = divmod(ms, 1000)
+            return f"{h:02d}:{m:02d}:{sec:02d},{ms:03d}"
+
+        srt_lines.extend([str(i + 1), f"{fmt(start)} --> {fmt(end)}", sent.upper(), ""])
+        cumulative += dur
+
+    with open(srt_path, "w") as f:
+        f.write("\n".join(srt_lines))
+
+    # 9. Mix voice + music via ffmpeg
+    info("7. Mixing audio...")
     music_dir = os.path.join(ROOT_DIR, "music")
     music_files = [
         os.path.join(music_dir, f) for f in os.listdir(music_dir)
-        if f.lower().endswith((".mp3", ".wav", ".m4a", ".ogg"))
+        if f.lower().endswith((".mp3", ".wav", ".m4a"))
     ] if os.path.isdir(music_dir) else []
 
-    output_path = os.path.join(videos_dir, f"grindset_{vid_id}.mp4")
+    mixed_audio = os.path.join(mp_dir, f"audio_{vid_id}.wav")
 
     if music_files:
         bg_path = random.choice(music_files)
-        info(f"  Music: {os.path.basename(bg_path)}")
+        info(f"   Music: {os.path.basename(bg_path)}")
 
-        # Pick random start point
-        bg_probe = AudioFileClip(bg_path)
-        max_start = max(0, bg_probe.duration - total_duration - 5)
-        start_offset = random.uniform(0, max_start) if max_start > 0 else 0
-        bg_probe.close()
+        # Pick random start
+        probe = AudioFileClip(bg_path)
+        max_start = max(0, probe.duration - total_dur - 5)
+        offset = random.uniform(0, max_start) if max_start > 0 else 0
+        probe.close()
 
-        # Use ffmpeg to mix voice + music and mux with video
-        # This is far more reliable than MoviePy for audio
-        mixed_audio = os.path.join(ROOT_DIR, ".mp", f"mixed_{vid_id}.wav")
-        cmd = [
+        subprocess.run([
             "ffmpeg", "-y",
-            "-i", tts_path,
-            "-ss", str(start_offset), "-i", bg_path,
+            "-i", voice_path,
+            "-ss", str(offset), "-i", bg_path,
             "-filter_complex",
-            f"[1:a]atrim=0:{total_duration},asetpts=PTS-STARTPTS,volume=0.20[bg];"
+            f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,volume=0.18[bg];"
             f"[0:a]volume=1.8[voice];"
             f"[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
             "-map", "[out]",
             "-ac", "2", "-ar", "44100",
             mixed_audio,
-        ]
-        subprocess.run(cmd, capture_output=True)
-
-        # Mux video + mixed audio
-        cmd2 = [
-            "ffmpeg", "-y",
-            "-i", temp_video,
-            "-i", mixed_audio,
-            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-            "-shortest",
-            output_path,
-        ]
-        subprocess.run(cmd2, capture_output=True)
+        ], capture_output=True)
     else:
-        # Just mux voice
-        cmd = [
+        # Voice only
+        subprocess.run(["cp", voice_path, mixed_audio], capture_output=True)
+
+    # 10. Final composite: video + audio + burned subtitles
+    info("8. Final render...")
+    output_path = os.path.join(videos_dir, f"alchemy_{vid_id}.mp4")
+
+    font_path = os.path.join(get_fonts_dir(), get_font())
+    # Escape special chars in path for ffmpeg
+    srt_escaped = srt_path.replace("'", "'\\''").replace(":", "\\:")
+
+    subprocess.run([
+        "ffmpeg", "-y",
+        "-i", raw_video,
+        "-i", mixed_audio,
+        "-vf", f"subtitles={srt_escaped}:force_style='FontName=Arial,FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,Alignment=2,MarginV=120'",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+        "-c:a", "aac", "-b:a", "192k",
+        "-shortest",
+        "-r", "24",
+        output_path,
+    ], capture_output=True)
+
+    # Check if it worked, if subtitles failed try without
+    if not os.path.exists(output_path) or os.path.getsize(output_path) < 1000:
+        warning("   Subtitle burn failed, rendering without...")
+        subprocess.run([
             "ffmpeg", "-y",
-            "-i", temp_video,
-            "-i", tts_path,
-            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+            "-i", raw_video,
+            "-i", mixed_audio,
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k",
             "-shortest",
             output_path,
-        ]
-        subprocess.run(cmd, capture_output=True)
+        ], capture_output=True)
 
-    success(f"\nVideo saved to: {output_path}")
-    print(f"  Open: open {output_path}")
+    size_mb = os.path.getsize(output_path) / (1024 * 1024)
+    success(f"\nVideo saved: {output_path} ({size_mb:.1f}MB)")
+    success(f"Script: {entry['id']}")
+    success(f"Clips: {len(valid)}/{len(sentences)}")
+    success(f"Duration: {total_dur:.1f}s")
+    print(f"\n  open {output_path}")
 
 
 if __name__ == "__main__":
