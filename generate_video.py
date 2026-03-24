@@ -246,10 +246,12 @@ def main():
 
     vid_id = str(uuid4())[:8]
 
-    # 1. Pick script
-    info("1. Loading script...")
+    # 1. Load libraries
+    info("1. Loading script + visuals libraries...")
     with open(os.path.join(ROOT_DIR, "scripts_library.json")) as f:
         library = json.load(f)
+    with open(os.path.join(ROOT_DIR, "visuals_library.json")) as f:
+        visuals = json.load(f)
     entry = random.choice(library)
     script = entry["script"]
     scene_hints = entry.get("scenes", [])
@@ -275,50 +277,41 @@ def main():
     for i, (sent, dur) in enumerate(zip(sentences, timings)):
         info(f"   [{dur:.1f}s] {sent[:60]}")
 
-    # 5. Generate video prompts — sentence-matched + scroll-stopping opener
-    info("3. Generating video prompts...")
-
-    # Generate a large pool of rapid-fire montage clips
-    # ~3x the number of sentences for rapid cuts
+    # 5. Build visual sequence from curated library
+    info("3. Building visual sequence from library...")
     num_clips = min(len(sentences) * 2, 20)
 
-    sentence_list = "\n".join(f'  {i+1}. "{s}"' for i, s in enumerate(sentences))
+    # Compose sequence following emotional arc:
+    # hooks (2) → struggle (4) → grind (4) → luxury (5) → triumph (3) → transition fills
+    n_hooks = 2
+    n_struggle = max(2, num_clips // 5)
+    n_grind = max(2, num_clips // 5)
+    n_triumph = 3
+    n_luxury = num_clips - n_hooks - n_struggle - n_grind - n_triumph
+    n_luxury = max(2, n_luxury)
 
-    prompts_raw = generate_text(
-        "You are a visual director for a rapid-fire motivational YouTube Short montage. "
-        f"Generate exactly {num_clips} cinematic video shot descriptions.\n\n"
-        f"SCRIPT (for thematic context):\n{sentence_list}\n\n"
-        "RULES:\n"
-        f"1. FIRST 3 PROMPTS must be SCROLL-STOPPERS — the most visually jaw-dropping shots possible. "
-        "Examples: extreme close-up of a red 2023 Ferrari SF90 Stradale exhaust with flames, "
-        "dramatic slow-motion face of a young man with sweat dripping staring into camera, "
-        "a black 2024 Lamborghini Revuelto launching with tire smoke in slow motion, "
-        "close-up of a Rolex Daytona face reflecting city lights. "
-        "These must make someone STOP SCROLLING instantly.\n\n"
-        "2. Shots should loosely follow the script's emotional arc — "
-        "start with intensity/struggle, move through grind/work, end with luxury/triumph.\n\n"
-        "3. Every prompt is a SINGLE continuous camera shot. No overlays, no split-screens, "
-        "no compositing, no text, no clocks, no UI elements.\n\n"
-        f"4. LAST 3 PROMPTS should be peak luxury/triumph: supercars, penthouses, "
-        "couple walking into sunset, aerial Monaco, etc.\n\n"
-        "5. Vary shot types rapidly: close-up object, wide aerial, face, car, silhouette, "
-        "gym, cityscape. Never put two similar shots next to each other.\n"
-        + VIDEO_PROMPT_RULES +
-        f"\nReturn ONLY a JSON array of exactly {num_clips} strings. No markdown."
+    # Randomly sample from each category (no repeats within a video)
+    def sample(category, n):
+        pool = visuals.get(category, [])
+        return random.sample(pool, min(n, len(pool)))
+
+    sequence = (
+        sample("hooks", n_hooks)
+        + sample("struggle", n_struggle)
+        + sample("grind", n_grind)
+        + sample("luxury", n_luxury)
+        + sample("triumph", n_triumph)
     )
 
-    prompts_raw = prompts_raw.replace("```json", "").replace("```", "").strip()
-    try:
-        image_prompts = json.loads(prompts_raw)
-    except Exception:
-        match = re.search(r"\[.*\]", prompts_raw, re.DOTALL)
-        image_prompts = json.loads(match.group()) if match else []
+    # Trim or pad to exact count
+    if len(sequence) > num_clips:
+        sequence = sequence[:num_clips]
+    while len(sequence) < num_clips:
+        sequence.append(random.choice(visuals.get("transition", visuals.get("luxury", ["Aerial shot of European coastline at golden hour"]))))
 
-    while len(image_prompts) < num_clips:
-        image_prompts.append("Cinematic aerial shot of a European coastal city at golden hour")
-    image_prompts = image_prompts[:num_clips]
+    image_prompts = sequence
 
-    info(f"   {len(image_prompts)} montage prompts (rapid-fire)")
+    info(f"   {len(image_prompts)} curated prompts")
     for i, p in enumerate(image_prompts[:5]):
         info(f"   [{i+1}] {p[:70]}...")
     info(f"   ... and {len(image_prompts) - 5} more")
