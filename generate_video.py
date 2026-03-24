@@ -66,6 +66,11 @@ VIDEO_PROMPT_RULES = (
     "PEOPLE: when showing men working out, they must ALWAYS be wearing a fitted t-shirt "
     "or athletic long sleeve. NEVER shirtless. Always look professional and put-together, "
     "even in the gym. No excessive sweat or unflattering angles.\n"
+    "FACES: always clean, dry, composed, and confident. NEVER sweaty, wet, or glistening. "
+    "Think GQ cover shoot, not mid-workout.\n"
+    "FIRST CLIP: must be bright, vivid, and visually striking. NEVER start with a dark screen, "
+    "black background, or dimly lit scene. Open with color and energy — a supercar in daylight, "
+    "a bright cityscape, a man in a sharp suit in golden light.\n"
     "CARS: show them driving smoothly, parked elegantly, or from a cinematic angle. "
     "NEVER on fire, never with flames from exhaust, never crashed or damaged.\n"
     "WATCHES: DO NOT generate Rolex or any watch close-ups — AI cannot render watch faces well. "
@@ -159,7 +164,23 @@ def generate_voice(script, output_path):
     import soundfile as sf
     from scipy.signal import resample as scipy_resample
 
+    # Add pauses for dramatic effect + fix hard-to-pronounce words
     clean = re.sub(r"[^\w\s.?!,'\-]", "", script)
+
+    # TTS pronunciation fixes
+    clean = clean.replace("Lamborghini", "Lambo")
+    clean = clean.replace("lamborghini", "lambo")
+    clean = clean.replace("Revuelto", "Rev-welto")
+    clean = clean.replace("Porsche", "Porsha")
+
+    # Add pauses after short punchy sentences (under 30 chars ending with period)
+    sentences_for_tts = re.split(r'(?<=[.!?])\s+', clean)
+    paced_parts = []
+    for s in sentences_for_tts:
+        paced_parts.append(s.strip())
+        if len(s.strip()) < 30:
+            paced_parts.append("...")  # short pause after punchy lines
+    clean = " ".join(paced_parts)
 
     tts_cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
     tts = tts_cls()
@@ -412,12 +433,15 @@ def main():
         offset = random.uniform(0, max_start) if max_start > 0 else 0
         probe.close()
 
+        # Music volume rises and falls: starts at 0.35, peaks at 0.55 around 70%, settles at 0.40
+        # Using volume filter with expression for dynamic volume
         subprocess.run([
             "ffmpeg", "-y",
             "-i", voice_path,
             "-ss", str(offset), "-i", bg_path,
             "-filter_complex",
-            f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,volume=0.28[bg];"
+            f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,"
+            f"volume='0.35 + 0.20 * sin(PI * t / {total_dur})':eval=frame[bg];"
             f"[0:a]volume=1.8[voice];"
             f"[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
             "-map", "[out]",
