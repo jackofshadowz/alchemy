@@ -417,7 +417,7 @@ def main():
             "-i", voice_path,
             "-ss", str(offset), "-i", bg_path,
             "-filter_complex",
-            f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,volume=0.18[bg];"
+            f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,volume=0.28[bg];"
             f"[0:a]volume=1.8[voice];"
             f"[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
             "-map", "[out]",
