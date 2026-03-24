@@ -21,17 +21,16 @@ from llm_provider import init_provider, generate_text
 from status import info, success, warning, error
 
 # ─── CONFIG ───
-VOICE = "am_adam"
+VOICES = ["am_adam", "am_michael", "am_eric", "bm_george", "bm_lewis"]
 VOICE_SPEED = 0.85
 QWEN_API_KEY = "sk-a104311e82c44e9f8a70df2a32ec75b6"
 QWEN_BASE = "https://dashscope-intl.aliyuncs.com/api/v1"
 
 IMAGE_STYLE = (
-    "Photorealistic cinematic still from a Netflix docuseries. "
-    "Shot on ARRI Alexa Mini LF, Cooke S7/i lens, shallow depth of field. "
-    "Natural dramatic lighting, warm amber highlights, deep shadows. "
-    "European setting. Western European young man, mid-20s. "
-    "9:16 vertical portrait composition. No text, no watermarks, no Asian settings."
+    "Photorealistic cinematic. Shallow depth of field. "
+    "Natural dramatic lighting, warm amber highlights. "
+    "9:16 vertical portrait composition. No text, no watermarks. "
+    "No phones or screens shown. No pens or writing. No blank displays."
 )
 
 # Guide the AI video model into its strengths, avoid common failure modes
@@ -51,10 +50,11 @@ VIDEO_PROMPT_RULES = (
     "HELICOPTER/AIRCRAFT: always show from the ground looking up, or parked static. "
     "NEVER show helicopters flying sideways or doing unrealistic movements.\n"
     "TASTEFUL COUPLE SHOTS (use sparingly, max 1 per video): "
-    "couple walking away from camera along a waterfront at sunset, "
-    "couple seen from behind in silhouette, elegant woman's hand on man's arm while walking, "
-    "couple from far away on a balcony overlooking a city. "
-    "ALWAYS from behind or in silhouette. NEVER facing camera. Wholesome, elegant, classy.\n"
+    "ONLY a man and woman couple. The man and woman walking away from camera along a waterfront at sunset, "
+    "man and woman seen from behind in silhouette, elegant woman's hand on man's arm while walking, "
+    "man and woman from far away on a balcony overlooking a city. "
+    "ALWAYS a man and a woman. ALWAYS from behind or in silhouette. NEVER facing camera. Wholesome, elegant, classy. "
+    "NEVER two men together in a romantic context.\n"
     "AVOID (AI will butcher these): detailed hand manipulation (typing, writing), "
     "any readable text or signage, crowded scenes with 3+ people, "
     "specific famous landmarks (gondolas, Eiffel Tower), indoor kitchens or restaurants, "
@@ -71,8 +71,12 @@ VIDEO_PROMPT_RULES = (
     "FIRST CLIP: must be bright, vivid, and visually striking. NEVER start with a dark screen, "
     "black background, or dimly lit scene. Open with color and energy — a supercar in daylight, "
     "a bright cityscape, a man in a sharp suit in golden light.\n"
-    "CARS: show them driving smoothly, parked elegantly, or from a cinematic angle. "
-    "NEVER on fire, never with flames from exhaust, never crashed or damaged.\n"
+    "CARS: show them driving forward smoothly, parked elegantly, or from driver's seat POV. "
+    "NEVER on fire, never with flames, never crashed, never driving backward. "
+    "NEVER show car logos, badges, or license plates in close-up — AI renders them garbled. "
+    "Always show the full car from a distance, or interior/steering wheel POV.\n"
+    "DIRECTION OF MOTION: all vehicles, boats, and people must be moving FORWARD. "
+    "Specify 'driving forward' or 'moving forward toward camera' in every motion prompt.\n"
     "WATCHES: DO NOT generate Rolex or any watch close-ups — AI cannot render watch faces well. "
     "Instead show luxury through cars, penthouses, suits, and city views.\n"
     "NO ALCOHOL: never show whiskey, wine, champagne, cocktails, bars, or drinking of any kind.\n"
@@ -184,7 +188,9 @@ def generate_voice(script, output_path):
 
     tts_cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
     tts = tts_cls()
-    wav_bytes = tts.synthesize.remote(clean, voice=VOICE, speed=VOICE_SPEED)
+    voice = random.choice(VOICES)
+    info(f"   Voice: {voice}")
+    wav_bytes = tts.synthesize.remote(clean, voice=voice, speed=VOICE_SPEED)
 
     # Write raw, then normalize + resample
     raw_path = output_path + ".raw.wav"
@@ -254,7 +260,6 @@ def main():
         visuals = json.load(f)
     entry = random.choice(library)
     script = entry["script"]
-    scene_hints = entry.get("scenes", [])
     success(f"   Script [{entry['id']}]: {script[:80]}...")
 
     # 2. Split into sentences

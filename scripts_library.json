@@ -1,187 +1,72 @@
 [
   {
     "id": "breathe_success",
-    "script": "When you want to succeed as bad as you want to breathe, that's when everything changes. I don't care if you're tired. I don't care if it hurts. You think champions were built on comfort? Look around you. The penthouse. The car. The view over Monaco. None of this came from hitting snooze. It came from the mornings nobody saw. The reps nobody counted. The hours nobody believed in. You want this life? Then stop wishing. And start becoming.",
-    "mood": "intense_buildup",
-    "scenes": [
-      "silhouette of a man bent over catching breath in an empty dark gym",
-      "slow aerial drone shot pulling away from a dark empty city street at 4am",
-      "wide shot of Monaco harbor skyline at golden hour from a high balcony",
-      "close-up of a luxury car hood badge reflecting golden sunset light",
-      "aerial shot of a single figure running alone on a coastal road at dawn",
-      "slow pan across empty weight rack in dim blue gym lighting",
-      "drone shot rising over Mediterranean coastline at sunrise",
-      "silhouette of a man standing at floor-to-ceiling window overlooking city lights",
-      "close-up of boxing gloves hanging on a hook in an empty gym",
-      "wide shot of an empty winding mountain road in the Swiss Alps at dawn",
-      "bokeh city lights at night slowly drifting out of focus",
-      "aerial pullback from a lone car driving on a coastal highway at sunset"
-    ]
+    "script": "When you want to succeed as bad as you want to breathe, that's when everything changes. I don't care if you're tired. I don't care if it hurts. You think champions were built on comfort? Look around you. The penthouse. The car. The view from the top. None of this came from hitting snooze. It came from the mornings nobody saw. The reps nobody counted. The hours nobody believed in. You want this life? Then stop wishing. And start becoming.",
+    "mood": "intense_buildup"
   },
   {
     "id": "through_hell",
-    "script": "If you're going through hell, keep going. Don't stop. Don't sit down. Don't look back. You're not supposed to live there. The cold mornings. The doubt. The people who told you it wouldn't work. That was the fire. And fire doesn't destroy you. It forges you. So when you're driving through the Alps with nothing but the engine and the road ahead, remember — you earned every mile of this. Through the hell they couldn't handle.",
-    "mood": "dark_to_triumphant",
-    "scenes": [
-      "dark foggy road stretching into blackness with a single streetlight",
-      "silhouette walking forward on an empty rain-soaked street at night",
-      "slow camera push through a dark empty corridor toward distant light",
-      "close-up of rain drops hitting pavement in orange streetlight glow",
-      "wide shot of cold blue pre-dawn sky over a European city rooftop",
-      "close-up of embers and sparks floating upward against black background",
-      "flames reflected in a dark window pane slow motion",
-      "aerial shot of a sports car on a winding Alpine road surrounded by mountains",
-      "close-up of a car engine vibrating with heat shimmer",
-      "drone shot following a mountain road from above at golden hour",
-      "wide landscape of snow-capped Alps with a single road cutting through",
-      "silhouette of a man standing on a mountain peak at sunrise"
-    ]
+    "script": "If you're going through hell, keep going. Don't stop. Don't sit down. Don't look back. You're not supposed to live there. The cold mornings. The doubt. The people who told you it wouldn't work. That was the fire. And fire doesn't destroy you. It forges you. So when you're driving through the mountains with nothing but the engine and the road ahead, remember — you earned every mile of this. Through the hell they couldn't handle.",
+    "mood": "dark_to_triumphant"
   },
   {
     "id": "obsessed_not_interested",
     "script": "See, everybody's interested. Interested in the cars. Interested in the lifestyle. Interested in being rich. But interested people do what's convenient. Obsessed people do what's necessary. At four AM, nobody's watching. The gym is empty and the streets are dark. And you're already two hours deep while they're still dreaming about what you're building. That's not motivation. That's obsession. And obsession is the only thing that ever built an empire.",
-    "mood": "confrontational",
-    "scenes": [
-      "slow pan across a row of luxury sports cars in soft showroom lighting",
-      "aerial night shot of a glamorous European boulevard with bokeh lights",
-      "close-up of stacked gold bars with shallow depth of field",
-      "wide shot of an empty luxury hotel lobby at night soft amber light",
-      "close-up of a clock face showing 4:00 AM in dim blue light",
-      "wide shot of an empty gym with a single overhead light on",
-      "drone shot of empty dark London streets from above at night",
-      "silhouette of a figure at a desk with a single lamp in a dark room",
-      "slow aerial pull back from a sleeping city at 4am",
-      "close-up of a laptop screen reflecting light on a desk in darkness",
-      "wide shot of city skyline emerging from fog at dawn",
-      "aerial shot of a massive modern building complex at sunrise"
-    ]
+    "mood": "confrontational"
   },
   {
     "id": "pain_is_the_professor",
-    "script": "Pain is not your enemy. Pain is your professor. Every rejection taught you resilience. Every failure taught you hunger. And every sleepless night taught you what you're willing to sacrifice. That sacrifice? That's the tuition for the life they said you couldn't afford. But here you are. In Milan. In Monaco. Deals closing, life opening. Because you paid the price they weren't willing to pay.",
-    "mood": "philosophical_power",
-    "scenes": [
-      "close-up of clenched fist slowly opening against dark background",
-      "slow pan across old boxing equipment in a dimly lit gym",
-      "silhouette of a man sitting alone in an empty room with head down",
-      "wide shot of a dark office with papers scattered and a single desk lamp",
-      "time-lapse of night sky turning to dawn over a European cityscape",
-      "aerial drone shot of Milan cathedral rooftops at golden hour",
-      "wide shot of Monaco harbor yachts from high above at sunset",
-      "close-up of a fountain pen on a leather desk surface",
-      "aerial shot of Mediterranean coastline with turquoise water",
-      "slow pan up the facade of a modern glass building reflecting sunset"
-    ]
+    "script": "Pain is not your enemy. Pain is your professor. Every rejection taught you resilience. Every failure taught you hunger. And every sleepless night taught you what you're willing to sacrifice. That sacrifice? That's the tuition for the life they said you couldn't afford. But here you are. Penthouse view. Deals closing. Life opening. Because you paid the price they weren't willing to pay.",
+    "mood": "philosophical_power"
   },
   {
     "id": "they_sleep_you_build",
     "script": "At three AM, the city is dead. But you're alive. More alive than you've ever been. Because this is the hour that separates the dreamers from the builders. While they sleep, you build. While they scroll, you study. While they complain, you compound. Day after day, week after week. Until one morning they wake up and wonder how you got so far ahead. You didn't get ahead. They fell behind. You just never stopped.",
-    "mood": "relentless",
-    "scenes": [
-      "aerial drone shot of a dark sleeping European city at 3am with scattered lights",
-      "close-up of a single window glowing in a dark apartment building",
-      "slow pan across an empty moonlit cobblestone street",
-      "silhouette of a man at a desk backlit by a monitor in total darkness",
-      "wide shot of empty construction site cranes against pre-dawn sky",
-      "close-up of a phone screen face-down on a desk next to open books",
-      "close-up of a chess piece being moved on a board in dramatic lighting",
-      "time-lapse of stock chart candles moving upward on a dark screen",
-      "calendar pages flipping in slow motion with dramatic lighting",
-      "wide shot of sunrise breaking over a European city skyline",
-      "drone shot slowly rising above rooftops as dawn light spreads",
-      "aerial pullback revealing a sprawling city coming to life at sunrise",
-      "silhouette of a man walking forward on an empty road toward the horizon",
-      "wide shot of a lone figure standing above a city at golden hour"
-    ]
+    "mood": "relentless"
   },
   {
     "id": "not_over_until_i_win",
-    "script": "It's not over until I win. Say that again. It's not over until I win. I don't care how many times I fall. I don't care how many doors close. I don't care how dark it gets. Because darkness is just the space between where you are and where you're going. And I've been in the dark before. I know how to move through it. The question is — do you? Because the view from the top of Monaco doesn't belong to the people who quit.",
-    "mood": "defiant",
-    "scenes": [
-      "close-up of a boxing ring rope vibrating after impact in dramatic light",
-      "slow motion of water droplets falling from a faucet in a dark room",
-      "same shot repeated with slight zoom — boxing ring rope vibrating",
-      "silhouette of a figure getting up from the ground in a dark space",
-      "slow camera push down a long dark corridor with a door at the end",
-      "wide shot of storm clouds rolling over a dark ocean at night",
-      "single streetlight illuminating fog on an empty European bridge",
-      "silhouette walking through a dark tunnel toward distant bright light",
-      "close-up of worn running shoes on wet pavement",
-      "aerial shot of Monaco lit up at night from high above the mountain",
-      "wide panoramic shot of Monaco coastline at sunset from a hilltop"
-    ]
+    "script": "It's not over until I win. Say that again. It's not over until I win. I don't care how many times I fall. I don't care how many doors close. I don't care how dark it gets. Because darkness is just the space between where you are and where you're going. And I've been in the dark before. I know how to move through it. The question is — do you? Because the view from the top doesn't belong to the people who quit.",
+    "mood": "defiant"
   },
   {
     "id": "mad_as_hell",
-    "script": "You need to get mad. Not angry at the world. Mad at yourself. Mad at every excuse you ever made. Mad at every alarm you snoozed. Mad at every opportunity you let slide because you were comfortable. Comfort is a slow death. And you didn't come this far to die average. So get up. Get dressed. And go take what's yours. The Lambo on the Monaco coast doesn't drive itself. Neither does your life.",
-    "mood": "angry_awakening",
-    "scenes": [
-      "close-up of a fist slamming down on a desk in dramatic side lighting",
-      "wide shot of a dark empty room with a single chair in spotlight",
-      "close-up of an alarm clock face glowing red in a dark room",
-      "slow pan across an empty luxury apartment with morning light creeping in",
-      "wide shot of a wilting flower in time-lapse against dark background",
-      "silhouette of a man standing up abruptly from a chair",
-      "close-up of suit jacket being pulled on in slow motion",
-      "close-up of leather shoes stepping onto polished floor",
-      "aerial drone following a Lambo on the Monaco coastal road at sunset",
-      "wide shot of a coastal highway stretching into the golden horizon"
-    ]
+    "script": "You need to get mad. Not angry at the world. Mad at yourself. Mad at every excuse you ever made. Mad at every alarm you snoozed. Mad at every opportunity you let slide because you were comfortable. Comfort is a slow death. And you didn't come this far to die average. So get up. Get dressed. And go take what's yours. The Lambo on the coast doesn't drive itself. Neither does your life.",
+    "mood": "angry_awakening"
   },
   {
     "id": "no_plan_b",
-    "script": "Burn the boats. There is no plan B. Plan B is a distraction from plan A. When you eliminate the option of failure, something incredible happens — you find a way. Every single time. The body breaks down. The mind wants to quit. But the soul? The soul knows what you're capable of. And it won't let you rest until you get there. London. Milan. The penthouse with the view. That's not a dream. That's a destination. And you've already started walking.",
-    "mood": "absolute_commitment",
-    "scenes": [
-      "wide shot of a burning boat on dark water with flames reflecting",
-      "aerial shot of a single road cutting through a barren landscape",
-      "close-up of a compass spinning then stopping in dramatic lighting",
-      "silhouette of a man pushing through heavy rain on an empty street",
-      "close-up of sweat dripping off a barbell in slow motion",
-      "slow camera rotation around a dimly lit boxing heavy bag swinging",
-      "wide shot of the London skyline at blue hour from across the Thames",
-      "aerial drone shot of Milan Duomo rooftops at golden hour from far above",
-      "wide shot through floor-to-ceiling windows showing city lights at night",
-      "silhouette of a man walking on a long straight road toward distant mountains"
-    ]
+    "script": "Burn the boats. There is no plan B. Plan B is a distraction from plan A. When you eliminate the option of failure, something incredible happens — you find a way. Every single time. The body breaks down. The mind wants to quit. But the soul? The soul knows what you're capable of. And it won't let you rest until you get there. The penthouse with the view. That's not a dream. That's a destination. And you've already started walking.",
+    "mood": "absolute_commitment"
   },
   {
     "id": "compound_silence",
     "script": "Nobody's coming to save you. Let that sink in. Not your friends. Not the algorithm. Not luck. Just you and the work. Every single day. One rep, one call, one page, one hour before the sun comes up. Alone, in silence. Because that's where empires are built. Not on stages, not in front of cameras. In the dark, in the quiet, where nobody claps. But everything compounds. Until one day the whole world asks how you did it. And you just smile.",
-    "mood": "stoic_truth",
-    "scenes": [
-      "wide shot of a single figure standing alone in an empty vast space",
-      "close-up of a water droplet creating ripples in a still dark pool",
-      "aerial shot of a lone person on an empty beach at dawn",
-      "close-up of a dumbbell being lifted in slow motion dramatic lighting",
-      "close-up of a phone receiver being picked up against dark background",
-      "close-up of a book page being turned in warm lamplight",
-      "wide shot of pre-dawn sky with a single star visible",
-      "silhouette of a figure working at a desk in a completely dark room",
-      "wide shot of an empty grand auditorium with a single spotlight on stage",
-      "close-up of camera lens reflecting light in darkness",
-      "time-lapse of coins or blocks stacking up against dark background",
-      "aerial pullback from a city revealing its full scale at sunrise",
-      "silhouette against a bright window slowly turning to face the light"
-    ]
+    "mood": "stoic_truth"
   },
   {
     "id": "the_price",
-    "script": "Everything has a price. The penthouse in London, the car in Monaco, the freedom to wake up without an alarm. But the price isn't money. It's the mornings you wanted to stay in bed but didn't. The nights you wanted to go out but chose the desk instead. The years of silence while everyone else was loud and comfortable. You paid in discipline, in solitude, in sweat. And now? Now you collect.",
-    "mood": "earned_triumph",
-    "scenes": [
-      "close-up of a Rolex Submariner on a man's wrist catching golden light",
-      "slow aerial pan across London skyline at dawn with golden light",
-      "red Ferrari 488 driving along the Monaco coastal road at sunset cinematic drone shot",
-      "close-up of a man's face in dramatic side lighting looking determined and confident",
-      "silhouette rolling out of bed in pre-dawn blue light",
-      "wide shot of an empty nightclub exterior with a lone figure walking past",
-      "silhouette at a desk in a window while city lights glow outside",
-      "close-up of gym chalk dust floating in a beam of light with heavy weights visible",
-      "close-up of whiskey being poured into a crystal glass in slow motion amber lighting",
-      "close-up of sweat drops on a metal barbell surface in macro",
-      "elegant couple walking away from camera along Monaco harbor at sunset in silhouette"
-    ]
+    "script": "Everything has a price. The penthouse, the car, the freedom to wake up without an alarm. But the price isn't money. It's the mornings you wanted to stay in bed but didn't. The nights you wanted to go out but chose the desk instead. The years of silence while everyone else was loud and comfortable. You paid in discipline, in solitude, in sweat. And now? Now you collect.",
+    "mood": "earned_triumph"
+  },
+  {
+    "id": "prove_them_wrong",
+    "script": "They laughed. They doubted. They said you were wasting your time. Good. Write their names down. Not for revenge. For fuel. Because the sweetest victory is the one nobody believed in but you. Every morning you wake up at four, you prove them wrong. Every deal you close, you prove them wrong. Every mile you drive along the coast, you prove them wrong. Not with words. With results. And results don't need an explanation.",
+    "mood": "revenge_fuel"
+  },
+  {
+    "id": "one_decision",
+    "script": "Your entire life can change with one decision. One decision to stop accepting less than you deserve. One decision to wake up before the sun and work while the world sleeps. One decision to bet on yourself when nobody else will. That's all it took for every great man who ever lived. One decision. One moment of absolute clarity. Where you looked in the mirror and said — enough. I'm done being average. Today it ends. And something greater begins.",
+    "mood": "turning_point"
+  },
+  {
+    "id": "two_versions",
+    "script": "There are two versions of your life. One where you stay in bed. Hit snooze. Take the easy road. And one where you get up right now, walk through the cold, and build something they'll remember. Cities don't build themselves. Neither do empires. Choose.",
+    "mood": "philosophical"
+  },
+  {
+    "id": "built_different",
+    "script": "You were never meant to be average. Average doesn't wake up in the dark. Average doesn't push through the pain. Average doesn't fly private on a Tuesday. You were built different. And the world is about to find out.",
+    "mood": "aggressive"
   }
 ]
