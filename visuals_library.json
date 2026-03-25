@@ -1,12 +1,12 @@
 {
   "hooks": [
-    "A red Ferrari SF90 Stradale accelerating on a sun-drenched coastal road, drone tracking shot from behind, golden hour light raking across the bodywork",
+    "A red Ferrari SF90 Stradale accelerating on a sun-drenched coastal road, low tracking shot from bumper level behind, golden hour light raking across the bodywork",
     "Close-up of a man's face against a completely plain dark background, dramatic golden side-light illuminating only half his face, deep shadows on the other half, still and composed, nothing else in frame",
     "POV from the driver's seat of a Lambo Revuelto, hands on the leather steering wheel, open coastal road stretching ahead, bright sunny day, dashboard out of frame",
-    "Aerial drone shot sweeping over a Mediterranean harbor filled with superyachts, turquoise water, bright midday sun, no specific city identifiable",
+    "Ground-level shot looking across a harbor filled with superyachts, turquoise water sparkling in bright midday sun, shot from the dock",
     "A black Porsche 911 GT3 RS cornering on a winding mountain road, shot through telephoto lens compressing the peaks behind it, bright overcast sky",
     "Slow-motion of a man in a perfectly tailored navy suit stepping out of a building into bright sunlight, confident stride, camera at waist level looking up",
-    "Aerial shot of a silver supercar driving along a coastal cliffside road, bright blue ocean below, golden afternoon light",
+    "A silver supercar driving along a coastal cliffside road, shot from the roadside as it passes, bright blue ocean in the background, golden afternoon light",
     "POV from the passenger seat of a convertible supercar, wind visible in the frame, bright coastal road ahead, sun flaring through the windshield",
     "A yellow Ferrari 296 GTB perfectly still with engine off in front of a sleek glass building, morning sun reflecting off the hood, wheels completely stationary, clean symmetrical composition",
     "Driver's seat POV of a McLaren on a winding mountain road, steering wheel in foreground, road curving ahead through bright green hills"
@@ -22,8 +22,8 @@
     "Close-up of a heavy barbell being gripped and lifted in slow motion, bright overhead gym lighting, powerful and clean",
     "A man in fitted long-sleeve doing battle ropes in a bright gym, ropes frozen mid-wave against sunlit windows, dynamic energy",
     "Wide shot of a man sprinting up outdoor concrete steps alone at dawn, warm orange light hitting the stairs from the side",
-    "Aerial drone shot of a lone runner far below on a bright coastal trail at sunrise, waves crashing beside the path, the figure small against the landscape",
-    "Aerial shot of a lone runner on a bright coastal path at sunrise, waves crashing below, golden light on the trail"
+    "Wide shot from ground level of a man running along a bright coastal trail at sunrise, waves crashing in the background, figure in the middle distance",
+    "A man in athletic wear running toward camera on a bright empty road at sunrise, shot from low angle, golden light behind him"
   ],
 
   "grind": [
@@ -33,7 +33,7 @@
     "A man in a fitted black t-shirt doing focused dumbbell curls in a well-lit clean gym, composed expression, bright overhead light",
     "Wide shot of a bright modern office with a man at the desk, large windows showing a city at first light, warm tones",
     "Tight close-up of a man's face lit by the glow of a laptop screen in a dark room, plain black background, focused expression, very still, minimal detail",
-    "Aerial shot of a city transitioning from night to dawn, warm golden light spreading across the skyline from the east",
+    "Rooftop POV looking out at a city skyline transitioning from night to dawn, warm golden light spreading from the east, shot from a high balcony",
     "A man in a suit walking purposefully down a bright marble corridor, shot from behind, morning sun creating golden rectangles on the floor",
     "A man in a suit walking through a bright modern glass lobby at dawn, reflections everywhere, purposeful stride, shot from behind",
     "Wide shot of a modern workspace at early morning, screens glowing, one person working, sunrise visible through windows",
@@ -43,16 +43,16 @@
   "luxury": [
     "A grey McLaren 750S perfectly still with engine off on a sunlit Mediterranean street, ocean behind, wheels stationary, late afternoon light painting warm gold across every curve",
     "Wide shot through floor-to-ceiling penthouse windows overlooking a coastal city at sunset, warm light on modern furniture, expansive view",
-    "Aerial drone shot following a red Ferrari along a coastal road, turquoise water beside it, bright sunny day, camera slightly above",
+    "A red Ferrari passing by on a coastal road, shot from the roadside at ground level, turquoise water visible behind, bright sunny day, motion blur on the car",
     "A man in a tailored charcoal suit walking through a grand hotel lobby, marble floors, warm golden chandelier light, confident stride",
     "A man in a tailored suit standing on a high balcony overlooking a harbor at sunset, shot from behind, warm golden backlight",
     "Slow pan across the interior of a private jet cabin, cream leather seats, warm lighting, clouds visible through oval windows",
-    "Aerial shot of a superyacht anchored in crystal clear turquoise water, bright day, rocky coastline in the distance",
+    "A superyacht seen from the shore, anchored in crystal clear turquoise water, bright day, rocky coastline framing the shot",
     "A black Lambo Urus driving through a European city at golden hour, old architecture blurred in background, warm light on the car",
     "POV from the driver's seat of a Ferrari, leather steering wheel in foreground, scenic coastal road ahead, dashboard blurred and out of focus",
     "Wide shot of a rooftop infinity pool overlooking a coastal city at sunset, still water reflecting the warm sky, empty and serene",
     "A white Porsche Taycan perfectly still with engine off against warm terracotta Mediterranean architecture, wheels stationary, bright afternoon sunlight, clean composition",
-    "POV from inside a helicopter looking out at a coastal city below, bright day, the perspective of arriving somewhere exclusive"
+    "A man in a suit walking through the doors of a grand European building into bright sunlight, shot from inside looking out, silhouetted against the light"
   ],
 
   "triumph": [
@@ -64,28 +64,28 @@
     "A white Ferrari driving into a blazing sunset on a long straight road, camera static, car getting smaller, dust catching golden light",
     "Wide shot of a man standing on a bright coastal cliff, ocean below, wind in his suit jacket, vast sky above, earned stillness",
     "POV from the driver's seat of a convertible supercar on a coastal road at golden hour, wind visible, sun ahead, the feeling of freedom",
-    "Drone slowly circling a man on a sunlit Mediterranean terrace, pulling back to reveal the coastline and sea, expanding his world",
+    "Wide shot from behind of a man standing on a sunlit Mediterranean terrace, coastline and sea stretching before him, golden hour",
     "A man and woman from far away at an outdoor terrace overlooking the sea at golden hour, warm amber light on everything, framed like a film's final shot"
   ],
 
   "transition": [
     "Slow-motion Mediterranean waves catching golden hour sunlight, spray turning to glowing mist, warm and hypnotic",
     "Close-up of rain drops sliding down a supercar windshield with warm blurred city lights behind, intimate and cinematic",
-    "Aerial shot drifting over a calm bay at sunrise, mirror-still water reflecting peach and gold sky, boats resting",
+    "Wide shot from the shore of a calm bay at sunrise, mirror-still water reflecting peach and gold sky, boats resting in the distance",
     "Slow-motion of a suit jacket being placed over a chair in a bright apartment, morning light catching the fabric texture",
     "Wide shot of morning fog lifting off a European cobblestone street, warm first light hitting ancient stone, timeless",
-    "Aerial drone gliding over sun-drenched vineyard rows at golden hour, geometric lines stretching to the warm horizon",
+    "Wide ground-level shot through sun-drenched vineyard rows at golden hour, geometric lines stretching to the warm horizon, camera low between the vines",
     "Close-up of a luxury car wheel spinning in slow motion on bright sunlit asphalt, heat shimmer visible",
     "Wide shot of morning mist over a lake, bright sunlight breaking through, mirror reflection on the water, peaceful and still"
   ],
 
   "outro": [
-    "Ultra-wide aerial pullback — a lone supercar on a cliffside road, camera rising higher and higher, revealing the entire golden coastline stretching to infinity, the scale of what's been earned",
+    "Wide shot from a cliff edge — a lone supercar parked perfectly still on a coastal road below, the entire golden coastline stretching to infinity, the scale of what's been earned",
     "A man in a perfect suit standing at the very edge of a rooftop, shot from behind, arms at his sides, an entire glowing city below him at golden hour, completely still, owning the moment",
-    "Slow-motion drone shot pulling away from a man standing on a sunlit terrace, the frame expanding to reveal the ocean, the coast, the sky — his world getting bigger and bigger",
+    "Wide shot from behind of a man in a suit standing at the edge of a sunlit cliff, ocean below, sky above, wind in his jacket, completely still, the earned silence of success",
     "A white Ferrari driving away from camera down a long straight sunlit road toward the horizon, getting smaller, golden dust hanging in the air, the journey continuing",
     "Wide shot of a man and woman from very far away, walking along a bright coastal path at sunset, silhouetted against the golden sky, the final reward",
-    "Aerial shot slowly rising above everything — city, coast, ocean — at golden hour, the world getting quiet and vast, a god's-eye view of the life that was built",
+    "Wide shot from a high balcony looking out over an entire coastal city at golden hour, the world quiet and vast, the view from the top",
     "A supercar parked perfectly still at the edge of a cliff overlooking the ocean at sunset, no people, just the car and the view, the prize waiting"
   ]
 }

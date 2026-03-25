@@ -84,7 +84,7 @@ class HeliosVideo:
             height=height,
             width=width,
             guidance_scale=guidance_scale,
-            pyramid_num_inference_steps_list=[3, 3, 3],
+            pyramid_num_inference_steps_list=[4, 4, 4],
         )
 
         frames = output.frames[0]  # list of PIL images
@@ -115,7 +115,7 @@ class HeliosVideo:
             height=height,
             width=width,
             guidance_scale=guidance_scale,
-            pyramid_num_inference_steps_list=[3, 3, 3],
+            pyramid_num_inference_steps_list=[4, 4, 4],
         )
 
         frames = output.frames[0]
