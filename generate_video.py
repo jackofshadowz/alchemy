@@ -30,7 +30,8 @@ IMAGE_STYLE = (
     "Photorealistic cinematic. Shallow depth of field. "
     "Natural dramatic lighting, warm amber highlights. "
     "9:16 vertical portrait composition. No text, no watermarks. "
-    "No phones or screens shown. No pens or writing. No blank displays."
+    "No phones or screens shown. No pens or writing. No blank displays. "
+    "No visible license plates — all cars must be shot from front, side, or driver POV only."
 )
 
 # Guide the AI video model into its strengths, avoid common failure modes
