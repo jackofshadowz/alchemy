@@ -77,6 +77,11 @@ VIDEO_PROMPT_RULES = (
     "LICENSE PLATES: NEVER show the rear of a car close enough to see a license plate. "
     "Always shoot cars from the side, front-quarter angle, driver's POV, or aerial. "
     "Avoid any angle where a plate would be visible.\n"
+    "CAR INTERIORS: NEVER show dashboard screens, navigation displays, infotainment systems, "
+    "or digital readouts — AI renders them as glitchy blue/black rectangles. "
+    "NEVER show rear-view mirrors or side mirrors with reflections — AI distorts faces in mirrors. "
+    "For driver's seat POV shots, show ONLY the steering wheel, the road ahead, and hands on the wheel. "
+    "Keep the dashboard blurred or out of frame.\n"
     "FIRST CLIP: must be bright, vivid, and visually striking. NEVER start with a dark screen, "
     "black background, or dimly lit scene. Open with color and energy — a supercar in daylight, "
     "a bright cityscape, a man in a sharp suit in golden light.\n"
@@ -296,15 +301,16 @@ def main():
     num_clips = min(len(sentences) * 2, 20)
 
     # Compose sequence following emotional arc:
-    # hooks (2) → struggle (4) → grind (4) → luxury (5) → triumph (3) → transition fills
+    # hooks (2) → struggle (3) → grind (3) → transition (1) → luxury (5) → triumph (4) → outro (2)
+    n_outro = 2
     n_hooks = 2
-    n_struggle = max(2, num_clips // 5)
-    n_grind = max(2, num_clips // 5)
-    n_triumph = 3
-    n_luxury = num_clips - n_hooks - n_struggle - n_grind - n_triumph
-    n_luxury = max(2, n_luxury)
+    n_triumph = 4
+    n_struggle = 3
+    n_grind = 3
+    n_transition = 1
+    n_luxury = num_clips - n_hooks - n_struggle - n_grind - n_transition - n_triumph - n_outro
+    n_luxury = max(3, n_luxury)
 
-    # Randomly sample from each category (no repeats within a video)
     def sample(category, n):
         pool = visuals.get(category, [])
         return random.sample(pool, min(n, len(pool)))
@@ -313,15 +319,18 @@ def main():
         sample("hooks", n_hooks)
         + sample("struggle", n_struggle)
         + sample("grind", n_grind)
+        + sample("transition", n_transition)
         + sample("luxury", n_luxury)
         + sample("triumph", n_triumph)
+        + sample("outro", n_outro)  # always end with the strongest shots
     )
 
     # Trim or pad to exact count
     if len(sequence) > num_clips:
-        sequence = sequence[:num_clips]
+        # Keep first 2 (hooks) and last 2 (outro), trim the middle
+        sequence = sequence[:n_hooks] + sequence[n_hooks:-(n_outro)] [:num_clips - n_hooks - n_outro] + sequence[-(n_outro):]
     while len(sequence) < num_clips:
-        sequence.append(random.choice(visuals.get("transition", visuals.get("luxury", ["Aerial shot of European coastline at golden hour"]))))
+        sequence.insert(-n_outro, random.choice(visuals.get("luxury", ["Aerial shot of coastline at golden hour"])))
 
     image_prompts = sequence
 
