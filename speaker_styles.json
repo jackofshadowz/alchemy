@@ -1,0 +1,109 @@
+{
+  "styles": {
+    "warrior": {
+      "description": "David Goggins / Jocko Willink energy. Brutal, military, no excuses. Short declarative sentences. Commands. Pain is fuel.",
+      "voice": "am_adam",
+      "voice_speed": 0.80,
+      "visual_tone": "dark struggle, gym intensity, empty roads at dawn, isolation, grinding alone",
+      "keywords": ["pain", "suffer", "weak", "quit", "hard", "discipline", "alone", "dark", "cold", "push"],
+      "example_lines": [
+        "You're soft. And you know it.",
+        "Get comfortable being uncomfortable.",
+        "Nobody cares about your feelings. Work.",
+        "The only easy day was yesterday."
+      ]
+    },
+    "preacher": {
+      "description": "Eric Thomas / Les Brown energy. Raw, passionate, street-to-stage. Builds from testimony to crescendo. Rhetorical questions. Anaphora.",
+      "voice": "am_eric",
+      "voice_speed": 0.85,
+      "visual_tone": "contrast between struggle and triumph, sunrise transitions, from darkness to light, building energy",
+      "keywords": ["breathe", "want", "dream", "hungry", "possible", "greatness", "believe", "fight", "rise"],
+      "example_lines": [
+        "When you want to succeed as bad as you want to breathe, then you'll be successful.",
+        "It's possible!",
+        "You have greatness within you.",
+        "I'm not telling you it's going to be easy. I'm telling you it's going to be worth it."
+      ]
+    },
+    "philosopher": {
+      "description": "Jordan Peterson / Marcus Aurelius energy. Precise, intellectual, archetypal. Longer sentences with careful word choice. Metaphors from mythology and nature.",
+      "voice": "bm_george",
+      "voice_speed": 0.82,
+      "visual_tone": "wide landscapes, architecture, classical European settings, contemplative, man alone thinking, oceans, mountains",
+      "keywords": ["meaning", "chaos", "order", "sacrifice", "responsibility", "truth", "burden", "soul", "destiny"],
+      "example_lines": [
+        "You're not who you could be. And you know it.",
+        "The purpose of life is to find the largest burden you can bear and bear it.",
+        "Compare yourself to who you were yesterday, not to who someone else is today.",
+        "You must be the monster before you can control the monster."
+      ]
+    },
+    "hustler": {
+      "description": "Gary Vee / Grant Cardone energy. Fast, direct, business-focused. Short bursts. Numbers and results. Impatient with excuses.",
+      "voice": "am_michael",
+      "voice_speed": 0.90,
+      "visual_tone": "luxury lifestyle, supercars, penthouses, business energy, city lights, deals closing, phones and laptops",
+      "keywords": ["money", "business", "deal", "execute", "speed", "scale", "hustle", "results", "win", "rich"],
+      "example_lines": [
+        "Document, don't create.",
+        "You're one deal away from everything changing.",
+        "Stop planning. Start doing.",
+        "The market doesn't care about your feelings."
+      ]
+    },
+    "sage": {
+      "description": "Denzel Washington / Morgan Freeman energy. Warm, wise, earned authority. Storytelling. Measured pace. Weight behind every word.",
+      "voice": "bm_lewis",
+      "voice_speed": 0.78,
+      "visual_tone": "golden hour everything, warmth, earned luxury, contemplative moments, man overlooking his empire, couple scenes, resolution",
+      "keywords": ["journey", "patience", "legacy", "earned", "time", "wisdom", "build", "foundation", "quiet", "collect"],
+      "example_lines": [
+        "Fall seven times, stand up eight.",
+        "Everything you've ever wanted is on the other side of fear.",
+        "The only thing standing between you and your goal is the story you keep telling yourself.",
+        "A wise man learns more from his enemies than a fool from his friends."
+      ]
+    }
+  },
+
+  "visual_mappings": {
+    "pain": ["struggle"],
+    "suffer": ["struggle"],
+    "gym": ["struggle"],
+    "workout": ["struggle"],
+    "morning": ["grind"],
+    "4am": ["grind"],
+    "dark": ["grind", "struggle"],
+    "cold": ["struggle"],
+    "work": ["grind"],
+    "desk": ["grind"],
+    "build": ["grind"],
+    "study": ["grind"],
+    "deal": ["business"],
+    "business": ["business"],
+    "money": ["business", "luxury"],
+    "closing": ["business"],
+    "empire": ["business", "triumph"],
+    "car": ["luxury", "hooks"],
+    "ferrari": ["luxury", "hooks"],
+    "lambo": ["luxury", "hooks"],
+    "porsche": ["luxury", "hooks"],
+    "penthouse": ["luxury"],
+    "luxury": ["luxury"],
+    "rich": ["luxury"],
+    "wealth": ["luxury"],
+    "monaco": ["luxury", "triumph"],
+    "view": ["triumph", "outro"],
+    "top": ["triumph", "outro"],
+    "empire": ["triumph", "outro"],
+    "win": ["triumph"],
+    "collect": ["triumph", "outro"],
+    "freedom": ["triumph", "outro"],
+    "coast": ["triumph", "luxury"],
+    "ocean": ["transition", "triumph"],
+    "fire": ["transition"],
+    "silence": ["grind", "transition"],
+    "couple": ["triumph"]
+  }
+}

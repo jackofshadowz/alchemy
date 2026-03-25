@@ -2,14 +2,14 @@
   "hooks": [
     "A red Ferrari SF90 Stradale accelerating on a sun-drenched coastal road, low tracking shot from bumper level behind, golden hour light raking across the bodywork",
     "Close-up of a man's face against a completely plain dark background, dramatic golden side-light illuminating only half his face, deep shadows on the other half, still and composed, nothing else in frame",
-    "POV from the driver's seat of a Lambo Revuelto, hands on the leather steering wheel, open coastal road stretching ahead, bright sunny day, dashboard out of frame",
+    "POV from the driver's seat of a vintage luxury car, hands on a leather-wrapped steering wheel, open coastal road stretching ahead, bright sunny day, no screens visible, clean analog interior",
     "Ground-level shot looking across a harbor filled with superyachts, turquoise water sparkling in bright midday sun, shot from the dock",
     "A black Porsche 911 GT3 RS cornering on a winding mountain road, shot through telephoto lens compressing the peaks behind it, bright overcast sky",
     "Slow-motion of a man in a perfectly tailored navy suit stepping out of a building into bright sunlight, confident stride, camera at waist level looking up",
     "A silver supercar driving along a coastal cliffside road, shot from the roadside as it passes, bright blue ocean in the background, golden afternoon light",
     "POV from the passenger seat of a convertible supercar, wind visible in the frame, bright coastal road ahead, sun flaring through the windshield",
     "A yellow Ferrari 296 GTB perfectly still with engine off in front of a sleek glass building, morning sun reflecting off the hood, wheels completely stationary, clean symmetrical composition",
-    "Driver's seat POV of a McLaren on a winding mountain road, steering wheel in foreground, road curving ahead through bright green hills"
+    "Wide exterior shot of a McLaren carving through a winding mountain road, shot from the roadside, bright green hills, the car passing by in golden light"
   ],
 
   "struggle": [
@@ -32,7 +32,7 @@
     "A man in a crisp white shirt working at a modern desk, bright city visible through large windows behind him, focused and composed",
     "A man in a fitted black t-shirt doing focused dumbbell curls in a well-lit clean gym, composed expression, bright overhead light",
     "Wide shot of a bright modern office with a man at the desk, large windows showing a city at first light, warm tones",
-    "Tight close-up of a man's face lit by the glow of a laptop screen in a dark room, plain black background, focused expression, very still, minimal detail",
+    "A man's silhouette lit by soft blue-white screen glow in a dark room, screen content not visible, focused posture, very still, minimal detail",
     "Rooftop POV looking out at a city skyline transitioning from night to dawn, warm golden light spreading from the east, shot from a high balcony",
     "A man in a suit walking purposefully down a bright marble corridor, shot from behind, morning sun creating golden rectangles on the floor",
     "A man in a suit walking through a bright modern glass lobby at dawn, reflections everywhere, purposeful stride, shot from behind",
@@ -49,7 +49,7 @@
     "Slow pan across the interior of a private jet cabin, cream leather seats, warm lighting, clouds visible through oval windows",
     "A superyacht seen from the shore, anchored in crystal clear turquoise water, bright day, rocky coastline framing the shot",
     "A black Lambo Urus driving through a European city at golden hour, old architecture blurred in background, warm light on the car",
-    "POV from the driver's seat of a Ferrari, leather steering wheel in foreground, scenic coastal road ahead, dashboard blurred and out of focus",
+    "POV from the driver's seat of a classic Ferrari, leather steering wheel in foreground, scenic coastal road ahead, vintage analog gauges, no digital screens",
     "Wide shot of a rooftop infinity pool overlooking a coastal city at sunset, still water reflecting the warm sky, empty and serene",
     "A white Porsche Taycan perfectly still with engine off against warm terracotta Mediterranean architecture, wheels stationary, bright afternoon sunlight, clean composition",
     "A man in a suit walking through the doors of a grand European building into bright sunlight, shot from inside looking out, silhouetted against the light"
@@ -77,6 +77,19 @@
     "Wide ground-level shot through sun-drenched vineyard rows at golden hour, geometric lines stretching to the warm horizon, camera low between the vines",
     "Close-up of a luxury car wheel spinning in slow motion on bright sunlit asphalt, heat shimmer visible",
     "Wide shot of morning mist over a lake, bright sunlight breaking through, mirror reflection on the water, peaceful and still"
+  ],
+
+  "business": [
+    "Empty boardroom — long polished conference table, single power chair at the head, floor-to-ceiling windows showing a bright city skyline, dramatic symmetry",
+    "A man in a sharp suit walking alone through an empty modern office corridor, shot from behind, morning light streaming through glass walls",
+    "Close-up of a stack of crisp hundred dollar bills on a dark polished desk surface, shallow depth of field, warm amber side lighting",
+    "Silhouette of two men shaking hands against a bright floor-to-ceiling window, city skyline behind, the deal is done",
+    "Wide shot of an empty corner office at dawn, pristine desk, city waking up through the windows, the chair waiting",
+    "Close-up of gold bars stacked neatly, warm lighting reflecting off each surface, simple dark background, wealth materialized",
+    "A man in a suit from behind, walking through the glass doors of a modern skyscraper into bright morning sunlight",
+    "Wide shot of a man's silhouette at a desk, multiple monitors casting blue-white glow on his face, screen content not visible, city lights through window behind",
+    "Close-up of a leather briefcase being set down on a marble surface, morning light catching the brass clasps, purposeful and clean",
+    "A man alone at the head of a long empty boardroom table, shot from the far end, dramatic depth, bright windows behind him casting him in silhouette"
   ],
 
   "outro": [

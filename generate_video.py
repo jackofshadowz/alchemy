@@ -82,10 +82,18 @@ VIDEO_PROMPT_RULES = (
     "Always shoot cars from the side, front-quarter angle, driver's POV, or aerial. "
     "Avoid any angle where a plate would be visible.\n"
     "CAR INTERIORS: NEVER show dashboard screens, navigation displays, infotainment systems, "
-    "or digital readouts — AI renders them as glitchy blue/black rectangles. "
-    "NEVER show rear-view mirrors or side mirrors with reflections — AI distorts faces in mirrors. "
-    "For driver's seat POV shots, show ONLY the steering wheel, the road ahead, and hands on the wheel. "
-    "Keep the dashboard blurred or out of frame.\n"
+    "or digital readouts — AI renders them as glitchy rectangles. "
+    "NEVER show rear-view mirrors or side mirrors with reflections. "
+    "For driver's seat POV: show ONLY the steering wheel and the road ahead. "
+    "All car interiors should look like vintage 2000s-2010s luxury — no touchscreens, "
+    "just analog gauges and clean leather. If a screen must be visible, it should be glossy black/off.\n"
+    "CAR EXTERIORS: NEVER show car logos, badges, emblems, or grille details in close-up. "
+    "Show the full car from a distance. No license plates — front or side angles only.\n"
+    "COMPUTER SCREENS: NEVER show what's on a computer screen — AI generates gibberish text. "
+    "Show screens as glowing light sources only (backlit face, screen glow on desk). "
+    "The screen content should never be readable or identifiable.\n"
+    "OPENING SHOT: NEVER start a video with a workout/gym scene. "
+    "First clip must be a luxury hook — supercar, city view, suit, or dramatic landscape.\n"
     "FIRST CLIP: must be bright, vivid, and visually striking. NEVER start with a dark screen, "
     "black background, or dimly lit scene. Open with color and energy — a supercar in daylight, "
     "a bright cityscape, a man in a sharp suit in golden light.\n"
@@ -163,15 +171,17 @@ def animate_image(image_path, prompt, output_path):
 
 
 def generate_clip_t2v(prompt, output_path):
-    """Generate a clip directly from text prompt."""
-    video_cls = modal.Cls.from_name("alchemy-video", "HeliosVideo")
+    """Generate a clip using Wan2.1-T2V-14B (frontier quality)."""
+    video_cls = modal.Cls.from_name("alchemy-video-hq", "Wan21Video")
     video = video_cls()
 
     mp4_bytes = video.generate_t2v.remote(
         prompt=prompt,
         num_frames=49,
-        height=384,
-        width=640,
+        height=480,
+        width=832,
+        num_inference_steps=25,
+        guidance_scale=5.0,
     )
 
     with open(output_path, "wb") as f:
@@ -181,7 +191,7 @@ def generate_clip_t2v(prompt, output_path):
 
 # ─── TTS ───
 
-def generate_voice(script, output_path):
+def generate_voice(script, output_path, voice=None, voice_speed=None):
     """Generate voiceover via Kokoro TTS on Modal."""
     import soundfile as sf
     from scipy.signal import resample as scipy_resample
@@ -218,9 +228,10 @@ def generate_voice(script, output_path):
 
     tts_cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
     tts = tts_cls()
-    voice = random.choice(VOICES)
-    info(f"   Voice: {voice}")
-    wav_bytes = tts.synthesize.remote(clean, voice=voice, speed=VOICE_SPEED)
+    voice = voice or random.choice(VOICES)
+    voice_speed = voice_speed or VOICE_SPEED
+    info(f"   Voice: {voice} (speed: {voice_speed})")
+    wav_bytes = tts.synthesize.remote(clean, voice=voice, speed=voice_speed)
 
     # Write raw, then normalize + resample
     raw_path = output_path + ".raw.wav"
@@ -283,14 +294,21 @@ def main():
     vid_id = str(uuid4())[:8]
 
     # 1. Load libraries
-    info("1. Loading script + visuals libraries...")
+    info("1. Loading script + visuals + speaker styles...")
     with open(os.path.join(ROOT_DIR, "scripts_library.json")) as f:
         library = json.load(f)
     with open(os.path.join(ROOT_DIR, "visuals_library.json")) as f:
         visuals = json.load(f)
+    with open(os.path.join(ROOT_DIR, "speaker_styles.json")) as f:
+        speaker_styles = json.load(f)
+
     entry = random.choice(library)
     script = entry["script"]
-    success(f"   Script [{entry['id']}]: {script[:80]}...")
+    style_name = entry.get("style", "preacher")
+    style = speaker_styles["styles"].get(style_name, {})
+    sentence_visuals = entry.get("sentence_visuals", [])
+
+    success(f"   Script [{entry['id']}] style={style_name}: {script[:70]}...")
 
     # 2. Split into sentences
     sentences = split_sentences(script)
@@ -299,7 +317,9 @@ def main():
     # 3. Generate voiceover first (to get total duration)
     info("2. Generating voiceover...")
     voice_path = os.path.join(mp_dir, f"voice_{vid_id}.wav")
-    generate_voice(script, voice_path)
+    generate_voice(script, voice_path,
+                   voice=style.get("voice"),
+                   voice_speed=style.get("voice_speed"))
 
     from moviepy.editor import AudioFileClip
     voice_clip = AudioFileClip(voice_path)
@@ -312,48 +332,81 @@ def main():
     for i, (sent, dur) in enumerate(zip(sentences, timings)):
         info(f"   [{dur:.1f}s] {sent[:60]}")
 
-    # 5. Build visual sequence from curated library
-    info("3. Building visual sequence from library...")
-    num_clips = min(len(sentences) * 2, 20)
+    # 5. Build visual sequence — sentence-matched from curated library
+    info("3. Building sentence-matched visual sequence...")
 
-    # Compose sequence following emotional arc:
-    # hooks (2) → struggle (3) → grind (3) → transition (1) → luxury (5) → triumph (4) → outro (2)
-    n_outro = 2
-    n_hooks = 2
-    n_triumph = 4
-    n_struggle = 3
-    n_grind = 3
-    n_transition = 1
-    n_luxury = num_clips - n_hooks - n_struggle - n_grind - n_transition - n_triumph - n_outro
-    n_luxury = max(3, n_luxury)
+    # Track which prompts we've used to avoid repeats
+    used_prompts = set()
 
-    def sample(category, n):
+    def pick_from(category):
+        """Pick a random unused prompt from a category."""
         pool = visuals.get(category, [])
-        return random.sample(pool, min(n, len(pool)))
+        available = [p for p in pool if p not in used_prompts]
+        if not available:
+            available = pool  # allow repeats if exhausted
+        if not available:
+            return "Wide shot of a coastal landscape at golden hour"
+        choice = random.choice(available)
+        used_prompts.add(choice)
+        return choice
 
-    sequence = (
-        sample("hooks", n_hooks)
-        + sample("struggle", n_struggle)
-        + sample("grind", n_grind)
-        + sample("transition", n_transition)
-        + sample("luxury", n_luxury)
-        + sample("triumph", n_triumph)
-        + sample("outro", n_outro)  # always end with the strongest shots
-    )
+    # Build sequence: one visual per sentence, matched by sentence_visuals tags
+    if sentence_visuals and len(sentence_visuals) >= len(sentences):
+        # Use per-sentence visual categories from the script entry
+        sequence = []
+        for i, sent in enumerate(sentences):
+            category = sentence_visuals[i] if i < len(sentence_visuals) else "luxury"
+            sequence.append(pick_from(category))
+    else:
+        # Fallback: generic arc
+        sequence = []
+        n = len(sentences)
+        for i in range(n):
+            progress = i / max(n - 1, 1)
+            if progress < 0.1:
+                category = "hooks"
+            elif progress < 0.3:
+                category = "struggle"
+            elif progress < 0.5:
+                category = "grind"
+            elif progress < 0.7:
+                category = "luxury"
+            elif progress < 0.9:
+                category = "triumph"
+            else:
+                category = "outro"
+            sequence.append(pick_from(category))
 
-    # Trim or pad to exact count
-    if len(sequence) > num_clips:
-        # Keep first 2 (hooks) and last 2 (outro), trim the middle
-        sequence = sequence[:n_hooks] + sequence[n_hooks:-(n_outro)] [:num_clips - n_hooks - n_outro] + sequence[-(n_outro):]
-    while len(sequence) < num_clips:
-        sequence.insert(-n_outro, random.choice(visuals.get("luxury", ["Aerial shot of coastline at golden hour"])))
+    # For rapid-fire, double the clips (2 per sentence) — interleave with transitions
+    num_clips = min(len(sentences) * 2, 20)
+    extended = []
+    for i, prompt in enumerate(sequence):
+        extended.append(prompt)
+        if len(extended) < num_clips:
+            # Add an interstitial from a related or transition category
+            if i < len(sentence_visuals):
+                cat = sentence_visuals[i]
+            else:
+                cat = "transition"
+            extended.append(pick_from(cat))
 
-    image_prompts = sequence
+    image_prompts = extended[:num_clips]
 
-    info(f"   {len(image_prompts)} curated prompts")
-    for i, p in enumerate(image_prompts[:5]):
-        info(f"   [{i+1}] {p[:70]}...")
-    info(f"   ... and {len(image_prompts) - 5} more")
+    # Always end with an outro
+    if len(image_prompts) >= 2:
+        image_prompts[-1] = pick_from("outro")
+        image_prompts[-2] = pick_from("outro")
+
+    # Never start with gym/struggle — swap first clip to hooks if needed
+    gym_keywords = ["gym", "pull-up", "barbell", "dumbbell", "rowing", "shadow-box", "battle rope", "push-up", "running", "sprinting"]
+    if image_prompts and any(kw in image_prompts[0].lower() for kw in gym_keywords):
+        image_prompts[0] = pick_from("hooks")
+
+    info(f"   {len(image_prompts)} sentence-matched prompts")
+    for i, (sent, prompt) in enumerate(zip(sentences[:5], image_prompts[:5])):
+        info(f"   [{i+1}] \"{sent[:30]}\" -> {prompt[:50]}...")
+    if len(image_prompts) > 5:
+        info(f"   ... and {len(image_prompts) - 5} more")
 
     # 6. Generate clips — rapid-fire montage
     info("4. Generating video clips...")
