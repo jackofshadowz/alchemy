@@ -70,10 +70,13 @@ VIDEO_PROMPT_RULES = (
     "Gym is solitary grind energy only.\n"
     "PARKED CARS: when a car is parked and stationary, the wheels must be completely still. "
     "Describe parked cars as 'perfectly still, engine off, parked' to prevent wheel glitching.\n"
-    "FACES: show faces only in PROFILE (side view) or from BEHIND or in SILHOUETTE. "
-    "NEVER show a face directly facing the camera from close up — AI creates glitchy uncanny faces. "
-    "If showing a person from the front, keep them far from camera (wide shot) or in shadow/silhouette. "
-    "Always clean, dry, composed. Think GQ editorial, shot from the side.\n"
+    "FACES: face close-ups CAN work but ONLY with a very simple background. "
+    "The face must be against a plain dark background, heavy bokeh, or solid gradient — "
+    "NO busy environments behind the face. Dramatic side-lighting with deep shadows on half the face. "
+    "The person should be still or moving very slowly (slight head turn only). "
+    "For busy scenes, show people from BEHIND, in SILHOUETTE, or in WIDE SHOTS where the face is small.\n"
+    "FEET/RUNNING: NEVER show close-ups of feet or running legs — AI makes them float/fly. "
+    "For running scenes, show the runner from FAR AWAY (wide/aerial shot) where foot detail is invisible.\n"
     "LICENSE PLATES: NEVER show the rear of a car close enough to see a license plate. "
     "Always shoot cars from the side, front-quarter angle, driver's POV, or aerial. "
     "Avoid any angle where a plate would be visible.\n"
@@ -191,13 +194,25 @@ def generate_voice(script, output_path):
     clean = clean.replace("Revuelto", "Rev-welto")
     clean = clean.replace("Porsche", "Porsha")
 
-    # Add pauses after short punchy sentences (under 30 chars ending with period)
+    # Add dramatic pauses
     sentences_for_tts = re.split(r'(?<=[.!?])\s+', clean)
+
+    # Words/phrases that need a pause AFTER them for dramatic effect
+    dramatic_words = ['ends', 'begins', 'enough', 'choose', 'now', 'quit',
+                      'win', 'stop', 'never', 'empire', 'collect', 'smile',
+                      'obsession', 'fire', 'forges', 'sacrifice', 'professor']
+
     paced_parts = []
     for s in sentences_for_tts:
-        paced_parts.append(s.strip())
-        if len(s.strip()) < 30:
-            paced_parts.append("...")  # short pause after punchy lines
+        s = s.strip()
+        paced_parts.append(s)
+        # Pause after short punchy lines
+        if len(s) < 30:
+            paced_parts.append("...")
+        # Extra long pause after sentences ending with dramatic words
+        last_word = s.rstrip('.!?').split()[-1].lower() if s.strip() else ""
+        if last_word in dramatic_words:
+            paced_parts.append(".....")  # longer dramatic pause
     clean = " ".join(paced_parts)
 
     tts_cls = modal.Cls.from_name("alchemy-tts", "KokoroTTS")
