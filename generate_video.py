@@ -412,7 +412,8 @@ def main():
         + "\n".join(f"- {q}" for q in style_pool) +
         "\n\nRules:\n"
         "- Match each query to the sentence being spoken at that moment\n"
-        "- First 3 should be the most visually intense/striking\n"
+        "- First 3 MUST be luxury/aspirational — a supercar, private jet, yacht, or city skyline. "
+        "NEVER start with gym, fitness, workout, boxing, or any person exercising.\n"
         "- Last 3 should be triumphant/aspirational (luxury cars, penthouse, yacht)\n"
         "- Every query must be different\n"
         "- IMPORTANT: interleave grind shots with luxury reward shots throughout.\n"
@@ -430,11 +431,25 @@ def main():
         match = re.search(r"\[.*\]", queries_raw, re.DOTALL)
         clip_queries = json.loads(match.group()) if match else []
 
+    # Force first 3 queries to be luxury — never gym/fitness opener
+    luxury_openers = [
+        "ferrari 488 driving fast road", "bentley continental gt driving city",
+        "rolls royce phantom driving night", "lamborghini aventador highway",
+        "private jet gulfstream tarmac", "superyacht ocean aerial",
+        "city skyline sunset dramatic", "penthouse city view night",
+    ]
+    gym_words = {"gym", "boxing", "training", "deadlift", "workout", "fitness",
+                 "running", "pushup", "barbell", "shadow", "battle", "athlete",
+                 "stairs", "sweat", "pull"}
+    for i in range(min(3, len(clip_queries))):
+        if any(w in clip_queries[i].lower() for w in gym_words):
+            clip_queries[i] = random.choice(luxury_openers)
+
     # Pad if needed
     fallbacks = ["luxury car driving", "city skyline night", "ocean sunset waves",
-                 "man walking suit", "gym training workout", "penthouse city view",
+                 "man walking suit", "penthouse city view",
                  "coastal road scenic", "sunrise mountain", "business office modern",
-                 "couple walking city"]
+                 "couple walking city elegant"]
     while len(clip_queries) < num_clips:
         clip_queries.append(random.choice(fallbacks))
     clip_queries = clip_queries[:num_clips]
