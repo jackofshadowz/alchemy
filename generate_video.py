@@ -24,6 +24,7 @@ from status import info, success, warning, error
 VOICES = ["am_adam", "am_michael", "am_eric", "bm_george", "bm_lewis"]
 VOICE_SPEED = 0.85
 PEXELS_KEY = "1yNyeaX2M7iYEaSujSemZfHAzMPL4vEMP6TlfVFOTlwaGrZ9A0kr7cmN"
+PIXABAY_KEY = "55186402-09d87c724da81c760aa1a083f"
 CLIP_DURATION = 1.2  # seconds — use only first 1.2s of each I2V clip
 I2V_GUIDANCE = 7.5
 I2V_STEPS = 25
@@ -73,6 +74,29 @@ def search_pexels_videos(query, count=3, orientation="landscape"):
                     "duration": v.get("duration", 0),
                 })
                 break
+    return results
+
+
+def search_pixabay_videos(query, count=3):
+    """Search Pixabay for videos. Returns list of {url, id, duration}."""
+    resp = requests.get(
+        "https://pixabay.com/api/videos/",
+        params={"key": PIXABAY_KEY, "q": query, "per_page": count},
+        timeout=15,
+    )
+    if resp.status_code != 200:
+        return []
+    results = []
+    for h in resp.json().get("hits", []):
+        # Get medium or large video
+        vid = h.get("videos", {})
+        url = vid.get("large", {}).get("url") or vid.get("medium", {}).get("url", "")
+        if url and h.get("duration", 0) >= 3:
+            results.append({
+                "url": url,
+                "id": f"pb_{h['id']}",  # prefix to avoid ID collision with Pexels
+                "duration": h["duration"],
+            })
     return results
 
 
@@ -318,26 +342,83 @@ def main():
     # 4. Generate search queries — use LLM for unique queries per clip
     info("4. Generating search queries...")
 
+    # Mood-specific query pools
+    mood_queries = {
+        "warrior": [
+            "man boxing heavy bag gym", "dark gym empty weights room", "man running rain night city",
+            "man fist clenching determined", "stadium empty dark dramatic", "man shadow boxing gym",
+            "sports car speeding tunnel dark", "storm lightning ocean dramatic", "man pushups dawn outdoor",
+            "man heavy barbell deadlift gym", "man running concrete stairs dawn", "dark road car headlights night",
+            "man fighter training boxing ring", "man walking dark street alone", "cold morning breath dark city",
+            "heavy iron chains industrial", "man training gym intense", "man alone weight room night",
+            "dark tunnel light end walking", "man determined face close up dark",
+            "bentley continental driving city", "rolls royce driving night", "lamborghini aventador driving highway",
+            "private jet gulfstream tarmac", "superyacht mediterranean sea", "monte carlo casino night",
+            "man tailored suit italian style", "pitti uomo street style menswear", "first class airplane cabin",
+            "rooftop pool infinity city skyline", "ferrari 488 driving coastal road", "porsche 911 mountain road",
+        ],
+        "preacher": [
+            "sunrise city dramatic", "man raising arms victory", "sports car driving fast",
+            "crowd stadium lights", "man suit power walk", "gold luxury close up",
+            "city skyline golden hour", "man gym determined", "ocean waves powerful",
+            "bentley continental gt driving city night", "penthouse city view night", "man standing rooftop",
+            "ferrari 488 driving fast road", "empty road sunrise", "boxing gloves close up",
+            "rolls royce phantom parked hotel", "superyacht ocean aerial", "man silhouette sunrise",
+            "pitti uomo man street style", "private jet gulfstream boarding", "monte carlo harbour yachts",
+            "luxury watch close up", "skyscraper looking up",
+        ],
+        "philosopher": [
+            "ocean horizon calm", "mountain peak clouds", "man walking alone beach",
+            "library books old", "rain window contemplation", "chess pieces close up",
+            "fire fireplace warm", "tree standing alone field", "stone sculpture classical",
+            "empty road stretching horizon", "man suit looking out window",
+            "clock gears mechanism", "bridge fog morning",
+            "man thinking silhouette window", "sunrise over water still",
+            "ancient architecture columns", "man walking path alone",
+            "bentley driving country road elegant", "rolls royce interior luxury leather", "superyacht deck ocean",
+            "private jet interior first class", "man bespoke suit italian menswear", "ferrari portofino coastal road",
+        ],
+        "hustler": [
+            "man typing fast laptop office", "bentley continental parked valet", "city night neon lights street",
+            "man suit walking fast city street", "money cash stack business",
+            "modern glass office building exterior", "handshake business deal men",
+            "coffee desk early morning dark", "gulfstream private jet interior cabin",
+            "skyscraper elevator luxury", "man confident suit street style",
+            "ferrari key fob hand leather", "boardroom meeting modern", "rooftop infinity pool city skyline",
+            "briefcase leather man walking", "rolls royce driving city night",
+            "man phone call walking city", "penthouse modern apartment interior",
+            "pitti uomo menswear street style", "superyacht deck champagne ocean",
+            "monte carlo night casino lights", "porsche taycan driving city",
+        ],
+        "sage": [
+            "sunset golden beach calm", "man walking pier sunset", "ocean waves golden hour",
+            "couple walking away sunset", "vineyard golden light", "man standing cliff ocean",
+            "river flowing peaceful", "man suit overlooking city sunset",
+            "mountain road winding scenic", "man sitting bench park alone",
+            "door opening bright light", "balcony view city morning",
+            "harbor boats calm water", "man walking toward horizon",
+            "bentley parked manor house", "superyacht sunset calm sea", "penthouse terrace city panorama",
+            "gulfstream private jet boarding", "porsche 911 turbo mountain road", "dom perignon champagne pouring",
+        ],
+    }
+
+    style_pool = mood_queries.get(style_name, mood_queries["preacher"])
+
     queries_prompt = (
-        f"Generate {num_clips} different Pexels stock footage search queries for a motivational video.\n\n"
-        f"Script: \"{script}\"\n\n"
-        "Rules:\n"
-        "- Each query should be 2-4 words, designed for stock footage search\n"
-        "- Visuals must MATCH what's being said at that point in the script\n"
-        "- First 3 queries should be the most visually striking (hooks)\n"
-        "- Last 3 queries should be triumphant/aspirational (outro)\n"
-        "- EVERY query must be DIFFERENT — no repeats\n\n"
-        "ONLY use queries from this approved list of vibes:\n"
-        "Cars: 'sports car driving', 'luxury car highway', 'supercar road', 'car interior driving'\n"
-        "City: 'city skyline sunset', 'city night lights', 'city sunrise rooftop', 'skyscraper glass'\n"
-        "Business: 'business man walking', 'office desk morning', 'handshake deal', 'conference room'\n"
-        "Fitness: 'man gym weights', 'boxing training', 'running trail morning', 'athlete training'\n"
-        "Luxury: 'yacht ocean', 'penthouse view', 'private jet', 'luxury hotel lobby'\n"
-        "Nature: 'ocean waves sunset', 'mountain sunrise', 'coastal road aerial', 'storm clouds dramatic'\n"
-        "Lifestyle: 'man suit confident', 'coffee morning desk', 'couple walking city elegant'\n"
-        "Abstract: 'clock ticking', 'fire flames slow motion', 'water drops impact', 'light through window'\n\n"
-        "DO NOT use: animals, children, yoga, meditation, celebrations, parties, food, "
-        "school, church, nature hikes, random people, sports teams, crowds.\n"
+        f"Pick exactly {num_clips} search queries from this pool for a motivational video.\n\n"
+        f"Script: \"{script}\"\n"
+        f"Mood: {style_name} — {style.get('description', '')}\n\n"
+        f"QUERY POOL (pick from these ONLY, you may rephrase slightly):\n"
+        + "\n".join(f"- {q}" for q in style_pool) +
+        "\n\nRules:\n"
+        "- Match each query to the sentence being spoken at that moment\n"
+        "- First 3 should be the most visually intense/striking\n"
+        "- Last 3 should be triumphant/aspirational (luxury cars, penthouse, yacht)\n"
+        "- Every query must be different\n"
+        "- IMPORTANT: interleave grind shots with luxury reward shots throughout.\n"
+        "  Every 3-4 hard work clips, drop in a ferrari, penthouse, yacht, or luxury shot.\n"
+        "  The contrast between struggle and reward is what makes it compelling.\n"
+        "- You may use queries not in the pool IF they match the mood perfectly\n"
         f"\nReturn ONLY a JSON array of exactly {num_clips} strings. No markdown."
     )
 
@@ -398,6 +479,25 @@ def main():
                             success(f"     Pexels landscape video #{v['id']}")
                             sourced = True
                             break
+                except Exception:
+                    continue
+
+        # Try Pixabay videos
+        if not sourced:
+            pb_videos = search_pixabay_videos(query, count=5)
+            for v in pb_videos:
+                if v["id"] in used_ids:
+                    continue
+                try:
+                    raw = os.path.join(mp_dir, f"raw_{vid_id}_{i:03d}.mp4")
+                    download_file(v["url"], raw)
+                    max_start = max(0, v["duration"] - CLIP_DURATION - 1)
+                    start = random.uniform(0, max_start) if max_start > 0 else 0
+                    if trim_video_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
+                        used_ids.add(v["id"])
+                        success(f"     Pixabay video {v['id']}")
+                        sourced = True
+                        break
                 except Exception:
                     continue
 
