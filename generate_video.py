@@ -445,6 +445,17 @@ def main():
         if any(w in clip_queries[i].lower() for w in gym_words):
             clip_queries[i] = random.choice(luxury_openers)
 
+    # Force last 3 queries to be powerful closing shots
+    luxury_closers = [
+        "ferrari driving sunset coastal road", "lamborghini driving mountain highway",
+        "man silhouette standing cliff ocean sunset", "supercar driving into sunset",
+        "city skyline golden hour dramatic", "man suit rooftop overlooking city sunset",
+        "yacht sailing ocean sunset", "sports car parked cliff ocean view",
+        "man walking toward private jet sunset", "coastal road supercar golden hour",
+    ]
+    for i in range(max(0, len(clip_queries) - 3), len(clip_queries)):
+        clip_queries[i] = random.choice(luxury_closers)
+
     # Pad if needed
     fallbacks = ["luxury car driving", "city skyline night", "ocean sunset waves",
                  "man walking suit", "penthouse city view",
@@ -610,14 +621,19 @@ def main():
             "-filter_complex",
             f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,"
             f"volume='0.35 + 0.20 * sin(PI * t / {total_dur})':eval=frame[bg];"
-            f"[0:a]volume=1.8[voice];"
+            f"[0:a]bass=g=8:f=100,volume=1.8[voice];"
             f"[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
             "-map", "[out]",
             "-ac", "2", "-ar", "44100",
             mixed_audio,
         ], capture_output=True)
     else:
-        subprocess.run(["cp", voice_path, mixed_audio], capture_output=True)
+        # Voice only with bass boost
+        subprocess.run([
+            "ffmpeg", "-y", "-i", voice_path,
+            "-af", "bass=g=8:f=100",
+            mixed_audio,
+        ], capture_output=True)
 
     # 8. Final composite
     info("7. Final render...")
