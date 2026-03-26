@@ -336,7 +336,7 @@ def main():
 
     # 3. Calculate clip count for syncopated editing
     # More clips than sentences — rapid-fire staccato
-    num_clips = max(20, int(total_dur / CLIP_DURATION))
+    num_clips = max(25, int(total_dur / CLIP_DURATION))
     info(f"3. Building {num_clips} clips at {CLIP_DURATION}s each (syncopated)")
 
     # 4. Generate search queries — use LLM for unique queries per clip
