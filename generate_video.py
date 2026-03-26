@@ -420,6 +420,8 @@ def main():
         "  Every 3-4 hard work clips, drop in a ferrari, penthouse, yacht, or luxury shot.\n"
         "  The contrast between struggle and reward is what makes it compelling.\n"
         "- You may use queries not in the pool IF they match the mood perfectly\n"
+        "- ALL car queries must include 'luxury' or a specific brand name (ferrari, lamborghini, bentley, porsche, rolls royce, mclaren, aston martin, mercedes amg, bmw m)\n"
+        "- NEVER use generic 'car driving' — always specify luxury/brand\n"
         f"\nReturn ONLY a JSON array of exactly {num_clips} strings. No markdown."
     )
 
@@ -614,16 +616,25 @@ def main():
         offset = random.uniform(0, max_start) if max_start > 0 else 0
         probe.close()
 
+        # Add 2s outro tail: music swells then fades after voice ends
+        outro_dur = 2.0
+        full_dur = total_dur + outro_dur
+
         subprocess.run([
             "ffmpeg", "-y",
-            "-i", voice_path,
+            "-stream_loop", "-1",
             "-ss", str(offset), "-i", bg_path,
+            "-i", voice_path,
             "-filter_complex",
-            f"[1:a]atrim=0:{total_dur},asetpts=PTS-STARTPTS,"
-            f"volume='0.35 + 0.20 * sin(PI * t / {total_dur})':eval=frame[bg];"
-            f"[0:a]bass=g=8:f=100,volume=1.8[voice];"
-            f"[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
+            # Music: plays full duration + outro, swells at end then fades out
+            f"[0:a]atrim=0:{full_dur},asetpts=PTS-STARTPTS,"
+            f"volume='0.35 + 0.20 * sin(PI * t / {total_dur})':eval=frame,"
+            f"afade=t=out:st={total_dur}:d={outro_dur}[bg];"
+            # Voice: bass boost, pad with silence for the outro tail
+            f"[1:a]bass=g=8:f=100,volume=1.8,apad=whole_dur={full_dur}[voice];"
+            f"[voice][bg]amix=inputs=2:duration=first:dropout_transition=0[out]",
             "-map", "[out]",
+            "-t", str(full_dur),
             "-ac", "2", "-ar", "44100",
             mixed_audio,
         ], capture_output=True)
@@ -635,14 +646,31 @@ def main():
             mixed_audio,
         ], capture_output=True)
 
-    # 8. Final composite
+    # 8. Final composite with fade-to-black outro
     info("7. Final render...")
     output_path = os.path.join(videos_dir, f"alchemy_{vid_id}.mp4")
+
+    # Get raw video duration
+    probe_result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "csv=p=0", raw_video],
+        capture_output=True, text=True,
+    )
+    raw_dur = float(probe_result.stdout.strip()) if probe_result.stdout.strip() else total_dur
+
+    # Add 2s black screen at the end with fade, then mux with audio
+    outro_dur = 2.0
+    fade_start = raw_dur - 0.5  # start fading 0.5s before end of clips
+
     subprocess.run([
         "ffmpeg", "-y",
         "-i", raw_video,
         "-i", mixed_audio,
-        "-c:v", "copy",
+        "-filter_complex",
+        f"[0:v]tpad=stop_duration={outro_dur}:stop_mode=clone,"
+        f"fade=t=out:st={fade_start}:d={outro_dur + 0.5}:color=black[v]",
+        "-map", "[v]", "-map", "1:a",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "18",
         "-c:a", "aac", "-b:a", "192k",
         "-shortest",
         output_path,
