@@ -422,6 +422,8 @@ def main():
         "- You may use queries not in the pool IF they match the mood perfectly\n"
         "- ALL car queries must include 'luxury' or a specific brand name (ferrari, lamborghini, bentley, porsche, rolls royce, mclaren, aston martin, mercedes amg, bmw m)\n"
         "- NEVER use generic 'car driving' — always specify luxury/brand\n"
+        "- NEVER use: airplane cabin, commercial flight, blacksmith, forge, industrial factory, "
+        "fashion models, runway show, packed crowd, public transport, school, hospital\n"
         f"\nReturn ONLY a JSON array of exactly {num_clips} strings. No markdown."
     )
 
@@ -471,9 +473,41 @@ def main():
         info(f"   [{i+1}] {q}")
     info(f"   ... and {len(clip_queries) - 5} more")
 
-    # 5. Source clips — try Pexels video first, then photo→I2V
+    # 5. Source clips — curated library FIRST, then search as fallback
+    info("5. Sourcing clips...")
+
+    # Load curated clip library
+    curated_lib_path = os.path.join(ROOT_DIR, "pexels_clip_library.json")
+    curated_clips = {}
+    if os.path.exists(curated_lib_path):
+        with open(curated_lib_path) as f:
+            curated_clips = json.load(f)
+
+    # Map query keywords to curated categories
+    query_to_category = {
+        "ferrari": "luxury_cars", "bentley": "luxury_cars", "rolls royce": "luxury_cars",
+        "lamborghini": "luxury_cars", "porsche": "luxury_cars", "mclaren": "luxury_cars",
+        "aston martin": "luxury_cars", "mercedes": "luxury_cars", "bmw": "luxury_cars",
+        "supercar": "luxury_cars", "luxury car": "luxury_cars", "sports car": "luxury_cars",
+        "private jet": "private_aviation", "gulfstream": "private_aviation",
+        "helicopter": "private_aviation", "first class": "private_aviation",
+        "yacht": "yachts", "boat": "yachts", "sailing": "yachts",
+        "suit": "menswear_style", "menswear": "menswear_style", "pitti": "menswear_style",
+        "bespoke": "menswear_style", "tailored": "menswear_style",
+        "gym": "gym_training_men", "boxing": "gym_training_men", "deadlift": "gym_training_men",
+        "training": "gym_training_men", "workout": "gym_training_men", "weights": "gym_training_men",
+        "barbell": "gym_training_men", "battle rope": "gym_training_men",
+        "city": "city_power", "skyline": "city_power", "skyscraper": "city_power",
+        "downtown": "city_power", "night lights": "city_power",
+        "penthouse": "penthouse_luxury", "apartment": "penthouse_luxury",
+        "rooftop pool": "penthouse_luxury", "luxury hotel": "penthouse_luxury",
+        "ocean": "ocean_dramatic", "waves": "ocean_dramatic", "sea": "ocean_dramatic",
+        "storm": "ocean_dramatic", "coastal": "ocean_dramatic",
+        "couple": "couple_elegant",
+    }
+
     trimmed_clips = []
-    used_ids = set()  # track used photo AND video IDs
+    used_ids = set()
 
     for i, query in enumerate(clip_queries):
         clip_path = os.path.join(mp_dir, f"clip_{vid_id}_{i:03d}.mp4")
@@ -481,34 +515,57 @@ def main():
 
         sourced = False
 
-        # Try Pexels VIDEO — portrait first, then landscape
-        for orientation in ["portrait", "landscape"]:
-            if sourced:
+        # 1. Try curated library first — find matching category
+        matched_cat = None
+        for keyword, cat in query_to_category.items():
+            if keyword in query.lower():
+                matched_cat = cat
                 break
-            videos = search_pexels_videos(query, count=5, orientation=orientation)
-            for v in videos:
-                if v["duration"] < 2 or v["id"] in used_ids:
-                    continue
+
+        if matched_cat and matched_cat in curated_clips:
+            available = [c for c in curated_clips[matched_cat] if c["id"] not in used_ids]
+            if available:
+                clip_info = random.choice(available)
                 try:
                     raw = os.path.join(mp_dir, f"raw_{vid_id}_{i:03d}.mp4")
-                    download_file(v["url"], raw)
-                    max_start = max(0, v["duration"] - CLIP_DURATION - 1)
-                    start = random.uniform(0, max_start) if max_start > 0 else 0
-                    if orientation == "portrait":
-                        # Portrait video — just trim and scale, no crop
-                        if trim_portrait_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
-                            used_ids.add(v["id"])
-                            success(f"     Pexels portrait video #{v['id']}")
-                            sourced = True
-                            break
-                    else:
-                        if trim_video_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
-                            used_ids.add(v["id"])
-                            success(f"     Pexels landscape video #{v['id']}")
-                            sourced = True
-                            break
+                    download_file(clip_info["url"], raw)
+                    max_start = max(0, clip_info["duration"] - CLIP_DURATION - 1)
+                    start = random.choice([0, 0, 0, 1, 2]) if max_start > 2 else 0  # prefer the opening of each clip
+                    if trim_portrait_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
+                        used_ids.add(clip_info["id"])
+                        success(f"     Curated [{matched_cat}] #{clip_info['id']}")
+                        sourced = True
                 except Exception:
-                    continue
+                    pass
+
+        # 2. Fall back to Pexels search (portrait first)
+        if not sourced:
+            for orientation in ["portrait", "landscape"]:
+                if sourced:
+                    break
+                videos = search_pexels_videos(query, count=5, orientation=orientation)
+                for v in videos:
+                    if v["duration"] < 2 or v["id"] in used_ids:
+                        continue
+                    try:
+                        raw = os.path.join(mp_dir, f"raw_{vid_id}_{i:03d}.mp4")
+                        download_file(v["url"], raw)
+                        max_start = max(0, v["duration"] - CLIP_DURATION - 1)
+                        start = random.choice([0, 0, 0, 1, 2]) if max_start > 2 else 0  # prefer the opening of each clip
+                        if orientation == "portrait":
+                            if trim_portrait_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
+                                used_ids.add(v["id"])
+                                success(f"     Pexels portrait #{v['id']}")
+                                sourced = True
+                                break
+                        else:
+                            if trim_video_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
+                                used_ids.add(v["id"])
+                                success(f"     Pexels landscape #{v['id']}")
+                                sourced = True
+                                break
+                    except Exception:
+                        continue
 
         # Try Pixabay videos
         if not sourced:
@@ -520,7 +577,7 @@ def main():
                     raw = os.path.join(mp_dir, f"raw_{vid_id}_{i:03d}.mp4")
                     download_file(v["url"], raw)
                     max_start = max(0, v["duration"] - CLIP_DURATION - 1)
-                    start = random.uniform(0, max_start) if max_start > 0 else 0
+                    start = random.choice([0, 0, 0, 1, 2]) if max_start > 2 else 0  # prefer the opening of each clip
                     if trim_video_clip(raw, clip_path, start=start, duration=CLIP_DURATION):
                         used_ids.add(v["id"])
                         success(f"     Pixabay video {v['id']}")
